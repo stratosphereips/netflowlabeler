@@ -123,7 +123,7 @@ class labeler():
             self.conditionsGroup.append(condition)
 
             if debug:
-                print 'Condition added: {0}'.format(condition)
+                print '\tCondition added: {0}'.format(condition)
 
         except Exception as inst:
             print 'Problem in addCondition() in class labeler'
@@ -553,36 +553,47 @@ def loadConditions(configFile, labelmachine):
             if debug:
                 print 'Formatting the conditions' 
             conditions = {}
-            for key in parsedFile.keys():
+            listOfKeys = parsedFile.keys()
+            listOfKeys.sort()
+            for key in listOfKeys:
+                # we strip the number from the label. From '0 - label' to 'label'
+                strippedKey = key.split('- ')[1]
                 if debug:
-                    print 'KEY: {}'.format(key)
-                conditions[key]=[]
+                    print 'Processing key: {}'.format(key)
+                    if verbose:
+                        print '\tStripped key to use: {}'.format(strippedKey)
+            
+                conditions[strippedKey]=[]
+                if debug and verbose:
+                    print '\tCreated dictionary with the stripped key: {}'.format(conditions)
                 for cond in parsedFile[key]:
+                    if debug:
+                        print '\tAnalyzing conditions \'{}\' for key {}'.format(cond,key)
                     ands=[]
                     for pair in cond.split(' & '):
+                        if debug and verbose:
+                            print '\tAnalyzing the pair of conditions: \'{}\''.format(pair)
                         i={}
                         i[pair.split('=')[0]]=pair.split('=')[1]
+                        if debug and verbose:
+                            print '\tNew dict with the pair of conditions: {}'.format(i)
                         ands.append(i)
-                        if debug:
-                            print 'I: {}'.format(i)
-                            print 'ANDS: {}'.format(ands)
-                    conditions[key].append(ands)
-                    if debug: 
-                        print 'CONDITIONS: {}'.format(conditions)
+                        if debug and verbose:
+                            print '\tThe list of \'and\' conditions has been updated: {}'.format(ands)
+                    conditions[strippedKey].append(ands)
                 conditionsList.append(conditions)
                 if debug: 
-                    print 'conditionsList: {}'.format(conditionsList)
+                    print '\tConditions for label \'{}\': {}'.format(key,conditions)
+                    print '\tConditions list: {}'.format(conditionsList)
                 conditions = {}
         except:
             print 'Error formatting the conditions on loadConditions()'
 
         try:
             if debug:
-                print 'Adding the conditions'
+                print 'Adding the conditions to the labeler instance'
             for cond in conditionsList:
                 labelmachine.addCondition(cond) 
-                if debug:
-                    print 'Condition added: {}'.format(cond)
             print 'Conditions loaded sucessfully.'
         except:
             print 'Error formatting the conditions on loadConditions()'
