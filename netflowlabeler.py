@@ -75,6 +75,7 @@ def usage():
     print "  -v, --verbose        Output more information."
     print "  -D, --debug          Debug. In debug mode the statistics run live."
     print "  -f, --file           Input netflow file to label."
+    print "  -c, --conf           Input configuration file to create the labels."
     print
     sys.exit(1)
 
