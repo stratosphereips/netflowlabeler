@@ -87,6 +87,7 @@ class labeler():
     """
 
     conditionsGroup = []
+    """
     conditionsGroup = [ 
             {'Background': [ 
                 [ {'srcIP': 'all'} ] 
@@ -108,6 +109,7 @@ class labeler():
                 [ {'Proto':'UDP'}, {'dstPort':'53'} ] 
                 ] } 
                       ]
+    """
 
     def addCondition(self,condition):
         """
@@ -118,7 +120,7 @@ class labeler():
             global debug
             global verbose
 
-            #self.conditionsGroup.append(condition)
+            self.conditionsGroup.append(condition)
 
             if debug:
                 print 'Condition added: {0}'.format(condition)
