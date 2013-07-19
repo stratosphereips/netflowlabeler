@@ -161,7 +161,7 @@ def output_netflow_line_to_file(outputfile, netflowArray):
 
 
 
-def process_netflow(netflowFile):
+def process_netflow(netflowFile, labelmachine):
     """
     This function takes the netflowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
     """
@@ -170,10 +170,6 @@ def process_netflow(netflowFile):
         global verbose
         if verbose:
             print 'Processing the netflow file {0}'.format(netflowFile)
-
-
-        # Instantiate the labeler
-        labelmachine = labeler()
 
 
         # Read the netflow and parse the input
@@ -435,7 +431,7 @@ def process_netflow(netflowFile):
         exit(-1)
 
 
-def loadConditions(configFile):
+def loadConditions(configFile, labelmachine):
     global debug
     global verbose
 
@@ -454,23 +450,29 @@ def loadConditions(configFile):
             print 'The format of the configuration file is wrong. You should see the config.example for reference.'
             exit(1)
 
-        print 'Formatting the conditions' 
-        for key in parsedFile.keys():
-            conditions[key]=[]
-            for cond in parsedFile[key]:
-                ands=[]
-                for pair in cond.split(' & '):
-                    i={}
-                    i[pair.split('=')[0]]=pair.split('=')[1]
-                    ands.append(i)
-                conditions[key].append(ands)
+        try:`
+            print 'Formatting the conditions' 
+            for key in parsedFile.keys():
+                conditions[key]=[]
+                for cond in parsedFile[key]:
+                    ands=[]
+                    for pair in cond.split(' & '):
+                        i={}
+                        i[pair.split('=')[0]]=pair.split('=')[1]
+                        ands.append(i)
+                    conditions[key].append(ands)
+        except:
+            print 'Error formatting the conditions on loadConditions()'
 
-        print 'Adding the conditions'
-        for key in conditions.keys():
-            cond={} ; cond[key]=conditions[key]
-            #addCondition(cond) 
-            if debug:
-                print 'Condition added: {}'.format(cond)
+        try:
+            print 'Adding the conditions'
+            for key in conditions.keys():
+                cond={} ; cond[key]=conditions[key]
+                labelmachine.addCondition(cond) 
+                if debug:
+                    print 'Condition added: {}'.format(cond)
+        except:
+            print 'Error formatting the conditions on loadConditions()'
 
     except KeyboardInterrupt:
         # CTRL-C pretty handling.
@@ -506,23 +508,25 @@ def main():
         if opt in ("-c", "--conf"): confFile = str(arg)
     try:
         try:
-            if netflowFile == "":
+            if netflowFile == "" or confFile == "":
                 usage()
                 sys.exit(1)
-            if confFile == "":
-                usage()
-                sys.exit(1)
-
-            loadConditions(confFile)
-
-            # Direct process of netflow flows
-            elif netflowFile != "":
-                version()
-                process_netflow(netflowFile)
-
+            
             else:
-                usage()
-                sys.exit(1)
+                # Instantiate the labeler
+                labelmachine = labeler()
+
+                # Load conditions
+                loadConditions(confFile)
+
+                # Direct process of netflow flows
+                if netflowFile != "":
+                    version()
+                    process_netflow(netflowFile)
+
+                else:
+                    usage()
+                    sys.exit(1)
 
         except Exception, e:
                 print "misc. exception (runtime error from user callback?):", e
