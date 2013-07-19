@@ -91,15 +91,21 @@ class labeler():
             {'Background': [ 
                 [ {'srcIP': 'all'} ] 
                 ] }, 
-            {'Victim1': [
-                [ {'srcIP': '10.0.0.151'}, {'Proto': 'TCP'}], 
-                [ {'dstIP': '10.0.0.151'}, {'Proto': 'TCP'} ]
+            {'Normal': [ 
+                [ {'Proto':'IGMP'} ],
+                [ {'Proto':'ARP'} ]
                 ] }, 
-            {'Victim2': [ 
-                [ {'Proto':'IGMP'} ] 
+            {'Botnet-CC': [
+                [ {'srcIP': '10.0.0.151'} ], 
+                [ {'dstIP': '10.0.0.151'} ]
                 ] }, 
-            {'Victim3': [ 
-                [ {'Proto':'UDP'}, {'srcIP':'8.8.8.8'}, {'srcPort':'53'} ] 
+            {'Botnet-SPAM': [
+                [ {'Proto': 'TCP'}, {'srcPort': '25'} ], 
+                [ {'Proto': 'TCP'}, {'dstPort': '25'} ]
+                ] }, 
+            {'Botnet-DGA': [ 
+                [ {'Proto':'UDP'}, {'srcPort':'53'} ] ,
+                [ {'Proto':'UDP'}, {'dstPort':'53'} ] 
                 ] } 
                       ]
 
