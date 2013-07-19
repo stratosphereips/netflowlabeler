@@ -29,6 +29,7 @@
 import getopt
 import sys
 import re
+import yaml
 
 ####################
 # Global Variables
@@ -74,6 +75,7 @@ def usage():
     print "  -v, --verbose        Output more information."
     print "  -D, --debug          Debug. In debug mode the statistics run live."
     print "  -f, --file           Input netflow file to label."
+    print "  -c, --conf           Input configuration file to create the labels."
     print
     sys.exit(1)
 
@@ -224,7 +226,7 @@ def output_netflow_line_to_file(outputfile, netflowArray):
 
 
 
-def process_netflow(netflowFile):
+def process_netflow(netflowFile, labelmachine):
     """
     This function takes the netflowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
     """
@@ -233,10 +235,6 @@ def process_netflow(netflowFile):
         global verbose
         if verbose:
             print 'Processing the netflow file {0}'.format(netflowFile)
-
-
-        # Instantiate the labeler
-        labelmachine = labeler()
 
 
         # Read the netflow and parse the input
@@ -504,13 +502,64 @@ def process_netflow(netflowFile):
         exit(-1)
 
 
+def loadConditions(configFile, labelmachine):
+    global debug
+    global verbose
 
+    conditions = {}
+    try:
+        try:
+            if debug:
+                print 'Opening the configuration file \'{0}\''.format(configFile)
+            conf = open(configFile)
+        except:
+            print 'The file \'{0}\' couldn\'t be opened.'.format(configFile)
+            exit(1)
+        try:
+            if debug:
+                print 'Loading the conditions from the configuration file '                    
+            parsedFile = yaml.load(conf)
+        except:
+            print 'The format of the configuration file is wrong. You should see the config.example for reference.'
+            exit(1)
 
+        try:
+            if debug:
+                print 'Formatting the conditions' 
+            for key in parsedFile.keys():
+                conditions[key]=[]
+                for cond in parsedFile[key]:
+                    ands=[]
+                    for pair in cond.split(' & '):
+                        i={}
+                        i[pair.split('=')[0]]=pair.split('=')[1]
+                        ands.append(i)
+                    conditions[key].append(ands)
+        except:
+            print 'Error formatting the conditions on loadConditions()'
 
+        try:
+            if debug:
+                print 'Adding the conditions'
+            for key in conditions.keys():
+                cond={} ; cond[key]=conditions[key]
+                labelmachine.addCondition(cond) 
+                if debug:
+                    print 'Condition added: {}'.format(cond)
+            print 'Conditions loaded sucessfully.'
+        except:
+            print 'Error formatting the conditions on loadConditions()'
 
-
-
-
+    except KeyboardInterrupt:
+        # CTRL-C pretty handling.
+        print "Keyboard Interruption!. Exiting."
+        sys.exit(1)
+    except Exception as inst:
+        print 'Problem in main() function at configurationParser.py '
+        print type(inst)     # the exception instance
+        print inst.args      # arguments stored in .args
+        print inst           # __str__ allows args to printed directly
+        return False
 
 
 
@@ -521,8 +570,9 @@ def main():
         global verbose
 
         netflowFile = ""
+        confFile = ""
 
-        opts, args = getopt.getopt(sys.argv[1:], "VvDhf:", ["help","version","verbose","debug","file="])
+        opts, args = getopt.getopt(sys.argv[1:], "VvDhf:c:", ["help","version","verbose","debug","file=","conf="])
     except getopt.GetoptError: usage()
 
     for opt, arg in opts:
@@ -531,24 +581,32 @@ def main():
         if opt in ("-v", "--verbose"): verbose = True
         if opt in ("-D", "--debug"): debug = 1
         if opt in ("-f", "--file"): netflowFile = str(arg)
+        if opt in ("-c", "--conf"): confFile = str(arg)
     try:
         try:
             if debug:
                 verbose = True
 
-            if netflowFile == "":
+            if netflowFile == "" or confFile == "":
                 usage()
                 sys.exit(1)
+            
+            elif netflowFile != "" and confFile != "":
+                    # Print version information
+                    version()
 
+                    # Create an instance of the labeler
+                    labelmachine = labeler()
 
-            # Direct process of netflow flows
-            elif netflowFile != "":
-                version()
-                process_netflow(netflowFile)
+                    # Load conditions
+                    loadConditions(confFile,labelmachine)
+
+                    # Direct process of netflow flows
+                    process_netflow(netflowFile, labelmachine)
 
             else:
-                usage()
-                sys.exit(1)
+                    usage()
+                    sys.exit(1)
 
         except Exception, e:
                 print "misc. exception (runtime error from user callback?):", e
