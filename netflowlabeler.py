@@ -438,20 +438,23 @@ def loadConditions(configFile, labelmachine):
     conditions = {}
     try:
         try:
-            print 'Opening the configuration file \'{0}\''.format(configFile)
+            if debug:
+                print 'Opening the configuration file \'{0}\''.format(configFile)
             conf = open(configFile)
         except:
             print 'The file \'{0}\' couldn\'t be opened.'.format(configFile)
             exit(1)
         try:
-            print 'Loading the conditions from the configuration file '                    
+            if debug:
+                print 'Loading the conditions from the configuration file '                    
             parsedFile = yaml.load(conf)
         except:
             print 'The format of the configuration file is wrong. You should see the config.example for reference.'
             exit(1)
 
-        try:`
-            print 'Formatting the conditions' 
+        try:
+            if debug:
+                print 'Formatting the conditions' 
             for key in parsedFile.keys():
                 conditions[key]=[]
                 for cond in parsedFile[key]:
@@ -465,12 +468,14 @@ def loadConditions(configFile, labelmachine):
             print 'Error formatting the conditions on loadConditions()'
 
         try:
-            print 'Adding the conditions'
+            if debug:
+                print 'Adding the conditions'
             for key in conditions.keys():
                 cond={} ; cond[key]=conditions[key]
                 labelmachine.addCondition(cond) 
                 if debug:
                     print 'Condition added: {}'.format(cond)
+            print 'Conditions loaded sucessfully.'
         except:
             print 'Error formatting the conditions on loadConditions()'
 
@@ -512,19 +517,20 @@ def main():
                 usage()
                 sys.exit(1)
             
-            else:
-                # Instantiate the labeler
-                labelmachine = labeler()
-
-                # Load conditions
-                loadConditions(confFile)
-
-                # Direct process of netflow flows
-                if netflowFile != "":
+            elif netflowFile != "" and confFile != "":
+                    # Print version information
                     version()
-                    process_netflow(netflowFile)
 
-                else:
+                    # Create an instance of the labeler
+                    labelmachine = labeler()
+
+                    # Load conditions
+                    loadConditions(confFile,labelmachine)
+
+                    # Direct process of netflow flows
+                    process_netflow(netflowFile, labelmachine)
+
+            else:
                     usage()
                     sys.exit(1)
 
