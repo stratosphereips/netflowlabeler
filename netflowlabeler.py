@@ -29,6 +29,7 @@
 import getopt
 import sys
 import re
+import yaml
 
 ####################
 # Global Variables
@@ -434,13 +435,53 @@ def process_netflow(netflowFile):
         exit(-1)
 
 
+def loadConditions(configFile):
+    global debug
+    global verbose
 
+    conditions = {}
+    try:
+        try:
+            print 'Opening the configuration file \'{0}\''.format(configFile)
+            conf = open(configFile)
+        except:
+            print 'The file \'{0}\' couldn\'t be opened.'.format(configFile)
+            exit(1)
+        try:
+            print 'Loading the conditions from the configuration file '                    
+            parsedFile = yaml.load(conf)
+        except:
+            print 'The format of the configuration file is wrong. You should see the config.example for reference.'
+            exit(1)
 
+        print 'Formatting the conditions' 
+        for key in parsedFile.keys():
+            conditions[key]=[]
+            for cond in parsedFile[key]:
+                ands=[]
+                for pair in cond.split(' & '):
+                    i={}
+                    i[pair.split('=')[0]]=pair.split('=')[1]
+                    ands.append(i)
+                conditions[key].append(ands)
 
+        print 'Adding the conditions'
+        for key in conditions.keys():
+            cond={} ; cond[key]=conditions[key]
+            #addCondition(cond) 
+            if debug:
+                print 'Condition added: {}'.format(cond)
 
-
-
-
+    except KeyboardInterrupt:
+        # CTRL-C pretty handling.
+        print "Keyboard Interruption!. Exiting."
+        sys.exit(1)
+    except Exception as inst:
+        print 'Problem in main() function at configurationParser.py '
+        print type(inst)     # the exception instance
+        print inst.args      # arguments stored in .args
+        print inst           # __str__ allows args to printed directly
+        return False
 
 
 
@@ -451,8 +492,9 @@ def main():
         global verbose
 
         netflowFile = ""
+        confFile = ""
 
-        opts, args = getopt.getopt(sys.argv[1:], "VvDhf:", ["help","version","verbose","debug","file="])
+        opts, args = getopt.getopt(sys.argv[1:], "VvDhf:c:", ["help","version","verbose","debug","file=","conf="])
     except getopt.GetoptError: usage()
 
     for opt, arg in opts:
@@ -461,12 +503,17 @@ def main():
         if opt in ("-v", "--verbose"): verbose = True
         if opt in ("-D", "--debug"): debug = 1
         if opt in ("-f", "--file"): netflowFile = str(arg)
+        if opt in ("-c", "--conf"): confFile = str(arg)
     try:
         try:
             if netflowFile == "":
                 usage()
                 sys.exit(1)
+            if confFile == "":
+                usage()
+                sys.exit(1)
 
+            loadConditions(confFile)
 
             # Direct process of netflow flows
             elif netflowFile != "":
