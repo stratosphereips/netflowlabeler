@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-#  Copyright (C) 2009  Sebastian Garcia
+#  Copyright (C) 2009  Sebastian Garcia, Veronica Valeros
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import yaml
 # Global Variables
 
 debug = 0
-vernum = "0.1"
+vernum = "0.2"
 verbose = False
 
 #########
@@ -50,7 +50,8 @@ def version():
     print "| the Free Software Foundation; either version 2 of the License, or    |"
     print "| (at your option) any later version.                                  |"
     print "|                                                                      |"
-    print "| Author: Garcia Sebastian, sebastiangarcia@conicet.gov.ar             |"
+    print "| Author: Garcia Sebastian, eldraco@gmail.com                          |"
+    print "| Author: Veronica Valeros, vero.valeros@gmail.com                     |"
     print "| UNICEN-ISISTAN, Argentina. CTU, Prague-ATG                           |"
     print "+----------------------------------------------------------------------+"
     print
@@ -66,6 +67,7 @@ def usage():
     print "| (at your option) any later version.                                  |"
     print "|                                                                      |"
     print "| Author: Garcia Sebastian, eldraco@gmail.com                          |"
+    print "| Author: Veronica Valeros, vero.valeros@gmail.com                     |"
     print "| UNICEN-ISISTAN, Argentina. CTU, Prague-ATG                           |"
     print "+----------------------------------------------------------------------+"
     print "\nusage: %s <options>" % sys.argv[0]
@@ -205,6 +207,7 @@ class labeler():
                         
             if verbose:
                 if 'Background' in labelToReturn:
+                    #if verbose:
                     print '\tFinal label assigned: {0}'.format(labelToReturn)
                 else:
                     print '\tFinal label assigned: \x1b\x5b1;31;40m{0}\x1b\x5b0;0;40m'.format(labelToReturn)
