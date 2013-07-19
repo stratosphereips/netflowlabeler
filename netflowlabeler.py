@@ -85,7 +85,7 @@ class labeler():
     """
 
     conditionsGroup = []
-    conditionsGroup = [ {'Background': [ [{'srcIP': 'all'}] ] }, {'Victim1': [[{'srcIP': '10.0.0.151'}, {'Proto': 'HTTP'}], [{'dstIP': '10.0.0.151'}, {'Proto': 'HTTP'}]]} ]
+    conditionsGroup = [ {'Background': [ [{'srcIP': 'all'}] ] }, {'Victim1': [[{'srcIP': '10.0.0.151'}, {'Proto': 'HTTP'}], [{'dstIP': '10.0.0.151'}, {'Proto': 'HTTP'}]]}, {'Victim2': [ [ {'Proto':'IGMP'} ] ]} ]
 
     def addCondition(self,condition):
         """
@@ -119,28 +119,27 @@ class labeler():
             global verbose
 
 
-            if debug:
-                print 'Netflow line asked: {0}'.format(netflowLine)
+            #if debug:
+            #    print 'Netflow line asked: {0}'.format(netflowLine)
 
             # Default to empty label
-            label = ""
+            labelToReturn= ""
 
             # Convert the neflowLine array to a dict...
             netflowDict = {}
             for item in netflowLine:
                name = item.keys()[0]
                netflowDict[name] = item[name]
-        
 
         
             # Process all the conditions 
             print 'Processing the conditions'
             for group in self.conditionsGroup:
-                label = group.keys()[0]
+                labelToVerify = group.keys()[0]
                 if debug:
-                    print '\tLabel {0}'.format(label)
+                    print '\tLabel to verify {0}'.format(labelToVerify)
 
-                orConditions = group[label]
+                orConditions = group[labelToVerify]
                 if debug:
                     print '\t\tOr conditions group : {0}'.format(orConditions)
 
@@ -176,12 +175,15 @@ class labeler():
 
                     if allTrue:
                         if debug:
-                            print '\tLabel returned: {0}'.format(label)
-                        return label
-                    else:
-                        return ""
+                            print '\tNew label assigned: {0}'.format(labelToVerify)
+                        labelToReturn = labelToVerify
                         
                 raw_input()
+
+            if debug:
+                print 'Final label assigned: {0}'.format(labelToReturn)
+                return labelToReturn
+
 
 
 
@@ -351,7 +353,7 @@ def process_netflow(netflowFile):
             netflowArray[3] = dict
 
             
-            if 'TCP' in protocol or 'UDP' in protocol or 'RTP' in protocol:
+            if 'TCP' in protocol or 'UDP' in protocol or 'RTP' in protocol or 'IGMP' in protocol:
                 temp = columnValues[4]
                 if len(temp.split(':')) <= 2:
                     # It is IPV4
@@ -386,7 +388,7 @@ def process_netflow(netflowFile):
                 else:
                     # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow... so I'm leaving this for later
                     continue
-            elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'IGMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS':
+            elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS':
                 srcip = temp = columnValues[4]
                 # Store the value in the dict
                 dict = netflowArray[4]
