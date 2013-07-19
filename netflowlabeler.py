@@ -436,7 +436,7 @@ def loadConditions(configFile, labelmachine):
     global debug
     global verbose
 
-    conditions = {}
+    conditionsList = []
     try:
         try:
             if debug:
@@ -456,7 +456,10 @@ def loadConditions(configFile, labelmachine):
         try:
             if debug:
                 print 'Formatting the conditions' 
+            conditions = {}
             for key in parsedFile.keys():
+                if debug:
+                    print 'KEY: {}'.format(key)
                 conditions[key]=[]
                 for cond in parsedFile[key]:
                     ands=[]
@@ -464,15 +467,23 @@ def loadConditions(configFile, labelmachine):
                         i={}
                         i[pair.split('=')[0]]=pair.split('=')[1]
                         ands.append(i)
+                        if debug:
+                            print 'I: {}'.format(i)
+                            print 'ANDS: {}'.format(ands)
                     conditions[key].append(ands)
+                    if debug: 
+                        print 'CONDITIONS: {}'.format(conditions)
+                conditionsList.append(conditions)
+                if debug: 
+                    print 'conditionsList: {}'.format(conditionsList)
+                conditions = {}
         except:
             print 'Error formatting the conditions on loadConditions()'
 
         try:
             if debug:
                 print 'Adding the conditions'
-            for key in conditions.keys():
-                cond={} ; cond[key]=conditions[key]
+            for cond in conditionsList:
                 labelmachine.addCondition(cond) 
                 if debug:
                     print 'Condition added: {}'.format(cond)
