@@ -87,7 +87,21 @@ class labeler():
     """
 
     conditionsGroup = []
-    conditionsGroup = [ {'Background': [ [{'srcIP': 'all'}] ] }, {'Victim1': [[{'srcIP': '10.0.0.151'}, {'Proto': 'HTTP'}], [{'dstIP': '10.0.0.151'}, {'Proto': 'HTTP'}]]}, {'Victim2': [ [ {'Proto':'IGMP'} ] ]} ]
+    conditionsGroup = [ 
+            {'Background': [ 
+                [ {'srcIP': 'all'} ] 
+                ] }, 
+            {'Victim1': [
+                [ {'srcIP': '10.0.0.151'}, {'Proto': 'TCP'}], 
+                [ {'dstIP': '10.0.0.151'}, {'Proto': 'TCP'} ]
+                ] }, 
+            {'Victim2': [ 
+                [ {'Proto':'IGMP'} ] 
+                ] }, 
+            {'Victim3': [ 
+                [ {'Proto':'UDP'}, {'srcIP':'8.8.8.8'}, {'srcPort':'53'} ] 
+                ] } 
+                      ]
 
     def addCondition(self,condition):
         """
@@ -98,7 +112,7 @@ class labeler():
             global debug
             global verbose
 
-            self.conditionsGroup.append(condition)
+            #self.conditionsGroup.append(condition)
 
             if debug:
                 print 'Condition added: {0}'.format(condition)
@@ -135,7 +149,8 @@ class labeler():
 
         
             # Process all the conditions 
-            print 'Processing the conditions'
+            if debug:
+                print 'Processing the conditions'
             for group in self.conditionsGroup:
                 labelToVerify = group.keys()[0]
                 if debug:
@@ -149,29 +164,29 @@ class labeler():
                 # orConditions is an array. Each position of this array should be ORed with the next position
                 for andcondition in orConditions:
                     # If any of these andConditions groups is true, just return the label, because this for is an 'OR'
-                    if debug:
-                        print '\t\tAnd condition group : {0}'.format(andcondition)
+                    #if debug:
+                    #    print '\t\tAnd condition group : {0}'.format(andcondition)
 
                     # With this we keep control of how each part of the and is going...
                     allTrue = True
                     for acond in andcondition:
-                        if debug:
-                            print '\t\t\tAnd this with : {0}'.format(acond)
+                        #if debug:
+                        #   print '\t\t\tAnd this with : {0}'.format(acond)
 
                         condColumn = acond.keys()[0]
                         condValue = acond[condColumn]
                         netflowValue = netflowDict[condColumn]
                         if debug:
-                            print '\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
+                            print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
 
                         if (condValue == netflowValue) or (condValue == 'all') :
                             allTrue = True
                             if debug:
-                                print '\t\tTrue'
+                                print '\t\t\tTrue'
                             continue
                         else:
                             if debug:
-                                print '\t\tFalse'
+                                print '\t\t\tFalse'
                             allTrue = False
                             break
 
@@ -180,10 +195,13 @@ class labeler():
                             print '\tNew label assigned: {0}'.format(labelToVerify)
                         labelToReturn = labelToVerify
                         
-                raw_input()
-
-            if debug:
-                print 'Final label assigned: {0}'.format(labelToReturn)
+            if verbose:
+                if 'Background' in labelToReturn:
+                    print '\tFinal label assigned: {0}'.format(labelToReturn)
+                else:
+                    print '\tFinal label assigned: \x1b\x5b1;31;40m{0}\x1b\x5b0;0;40m'.format(labelToReturn)
+                if debug:
+                    raw_input()
                 return labelToReturn
 
 
@@ -209,7 +227,7 @@ def output_netflow_line_to_file(outputfile, netflowArray):
 
 
         # Date
-        outputline = netflowArray[0]['Date'] + ' ' + netflowArray[1]['start'] + ' ' + netflowArray[2]['Duration'] + '    ' + netflowArray[3]['Proto'] + '   ' + netflowArray[4]['srcIP'] + ':' + netflowArray[5]['srcPort'] + '        ->' + ' ' + netflowArray[6]['dstIP'] + ':' + netflowArray[7]['dstPort'] + '        ' + netflowArray[8]['Flags'] + '   ' + netflowArray[9]['Tos'] + '     ' + netflowArray[10]['Packets'] + ' ' + netflowArray[11]['Bytes'] + '   ' + netflowArray[12]['Flows'] + '  ' + netflowArray[13]['Label'] + '\n'
+        outputline = netflowArray[0]['Date'] + ' ' + netflowArray[1]['start'] + '\t\t' + netflowArray[2]['Duration'] + ' ' + netflowArray[3]['Proto'] + '\t' + netflowArray[4]['srcIP'] + ':' + netflowArray[5]['srcPort'] + '\t->' + ' ' + netflowArray[6]['dstIP'] + ':' + netflowArray[7]['dstPort'] + '        ' + netflowArray[8]['Flags'] + '   ' + netflowArray[9]['Tos'] + '     ' + netflowArray[10]['Packets'] + ' ' + netflowArray[11]['Bytes'] + '   ' + netflowArray[12]['Flows'] + '  ' + netflowArray[13]['Label'] + '\n'
         outputfile.writelines(outputline)
 
 
