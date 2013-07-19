@@ -84,6 +84,9 @@ class labeler():
     This class handles the adding of new labeling conditions and the return of the lables
     """
 
+    conditionsGroup = []
+    conditionsGroup = [ {'Background': [ [{'srcIP': 'all'}] ] }, {'Victim1': [[{'srcIP': '10.0.0.151'}, {'Proto': 'HTTP'}], [{'dstIP': '10.0.0.151'}, {'Proto': 'HTTP'}]]} ]
+
     def addCondition(self,condition):
         """
         Add a condition.
@@ -92,6 +95,8 @@ class labeler():
         try:
             global debug
             global verbose
+
+            self.conditionsGroup.append(condition)
 
             if debug:
                 print 'Condition added: {0}'.format(condition)
@@ -113,14 +118,71 @@ class labeler():
             global debug
             global verbose
 
-            label = "Botnet"
 
-            #if debug:
-                #print 'Netflow line asked: {0}'.format(netflowLine)
-                #print 'Label returned: {0}'.format(label)
+            if debug:
+                print 'Netflow line asked: {0}'.format(netflowLine)
 
-            # Only for testing
-            return label
+            # Default to empty label
+            label = ""
+
+            # Convert the neflowLine array to a dict...
+            netflowDict = {}
+            for item in netflowLine:
+               name = item.keys()[0]
+               netflowDict[name] = item[name]
+        
+
+        
+            # Process all the conditions 
+            print 'Processing the conditions'
+            for group in self.conditionsGroup:
+                label = group.keys()[0]
+                if debug:
+                    print '\tLabel {0}'.format(label)
+
+                orConditions = group[label]
+                if debug:
+                    print '\t\tOr conditions group : {0}'.format(orConditions)
+
+
+                # orConditions is an array. Each position of this array should be ORed with the next position
+                for andcondition in orConditions:
+                    # If any of these andConditions groups is true, just return the label, because this for is an 'OR'
+                    if debug:
+                        print '\t\tAnd condition group : {0}'.format(andcondition)
+
+                    # With this we keep control of how each part of the and is going...
+                    allTrue = True
+                    for acond in andcondition:
+                        if debug:
+                            print '\t\t\tAnd this with : {0}'.format(acond)
+
+                        condColumn = acond.keys()[0]
+                        condValue = acond[condColumn]
+                        netflowValue = netflowDict[condColumn]
+                        if debug:
+                            print '\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
+
+                        if (condValue == netflowValue) or (condValue == 'all') :
+                            allTrue = True
+                            if debug:
+                                print '\t\tTrue'
+                            continue
+                        else:
+                            if debug:
+                                print '\t\tFalse'
+                            allTrue = False
+                            break
+
+                    if allTrue:
+                        if debug:
+                            print '\tLabel returned: {0}'.format(label)
+                        return label
+                    else:
+                        return ""
+                        
+                raw_input()
+
 
 
         except Exception as inst:
@@ -392,9 +454,15 @@ def process_netflow(netflowFile):
             dict[columnName] = flows
             netflowArray[12] = dict
 
-            if debug:
-                print date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows
-                print netflowArray
+            # Empty the label in the dict
+            dict = netflowArray[13]
+            columnName = dict.keys()[0] 
+            dict[columnName] = ""
+            netflowArray[13] = dict
+
+            #if debug:
+            #    print date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows
+            #    print netflowArray
 
 
             # Request a label
@@ -463,6 +531,9 @@ def main():
         if opt in ("-f", "--file"): netflowFile = str(arg)
     try:
         try:
+            if debug:
+                verbose = True
+
             if netflowFile == "":
                 usage()
                 sys.exit(1)
