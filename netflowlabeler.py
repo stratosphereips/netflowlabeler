@@ -186,24 +186,24 @@ class labeler():
                         condColumn = acond.keys()[0]
                         condValue = acond[condColumn]
                         netflowValue = netflowDict[condColumn]
-                        if debug:
-                            print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
+                        #if debug:
+                        #    print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
 
                         if (condValue == netflowValue) or (condValue == 'all') :
                             allTrue = True
-                            if debug:
-                                print '\t\t\tTrue'
+                            #if debug:
+                            #    print '\t\t\tTrue'
                             continue
                         else:
-                            if debug:
-                                print '\t\t\tFalse'
+                            #if debug:
+                            #    print '\t\t\tFalse'
                             allTrue = False
                             break
 
                     if allTrue:
+                        labelToReturn = labelToVerify
                         if debug:
                             print '\tNew label assigned: {0}'.format(labelToVerify)
-                        labelToReturn = labelToVerify
                         
             if verbose:
                 if 'Background' in labelToReturn:
@@ -211,9 +211,9 @@ class labeler():
                     print '\tFinal label assigned: {0}'.format(labelToReturn)
                 else:
                     print '\tFinal label assigned: \x1b\x5b1;31;40m{0}\x1b\x5b0;0;40m'.format(labelToReturn)
-                if debug:
-                    raw_input()
-                return labelToReturn
+                #if debug:
+                #    raw_input()
+            return labelToReturn
 
 
 
@@ -236,9 +236,8 @@ def output_netflow_line_to_file(outputfile, netflowArray):
         global debug
         global verbose
 
-
         # Date
-        outputline = netflowArray[0]['Date'] + ' ' + netflowArray[1]['start'] + '\t\t' + netflowArray[2]['Duration'] + ' ' + netflowArray[3]['Proto'] + '\t' + netflowArray[4]['srcIP'] + ':' + netflowArray[5]['srcPort'] + '\t->' + ' ' + netflowArray[6]['dstIP'] + ':' + netflowArray[7]['dstPort'] + '        ' + netflowArray[8]['Flags'] + '   ' + netflowArray[9]['Tos'] + '     ' + netflowArray[10]['Packets'] + ' ' + netflowArray[11]['Bytes'] + '   ' + netflowArray[12]['Flows'] + '  ' + netflowArray[13]['Label'] + '\n'
+        outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '   ' + str(netflowArray[12]['Flows']) + '  ' + str(netflowArray[13]['Label']) + '\n'
         outputfile.writelines(outputline)
 
 
