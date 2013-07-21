@@ -444,7 +444,7 @@ def process_netflow(netflowFile, labelmachine):
                 dict[columnName] = dstport
                 netflowArray[7] = dict
 
-            elif 'IPV6' in protocol or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol:
+            elif 'IPV6' in protocol or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol or 'llc' in protocol:
                 # Not now.... so do it later
                 continue
 
