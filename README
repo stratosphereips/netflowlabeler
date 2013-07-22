@@ -1,4 +1,40 @@
-NetflowLabeler
+Netflowlabeler
 --------------
+Netflowlabeler is a python tool to add labels to netflow text files. 
+If you have a netflow text file and you want to add labels to it, you can add the lables and conditions to a configuration file and use this tool to assign them.
+
+Configuration File
+------------------
+The conf file syntax is like this:
+
+0 - Background:
+    - srcIP=all
+1 - Normal:
+    - Proto=ARP
+    - Proto=IGMP
+2 - Botnet-DGA:
+    - Proto=UDP & dstPort=53
+    - Proto=UDP & srcPort=53
+3 - Botnet-CC:
+    - srcIP=10.0.0.151 & Proto=TCP
+    - dstIP=10.0.0.151 & Proto=TCP
+
+The numbers are the priority of the rule. First we check the 0 rule and if it matches then we assign that label. Then we check the 1 rule, etc.
+All the rules below a label are ORed. You can use & to AND different rules.
+
+These are the possible fields that you can use in a configuration file to create the rules used for labeling.
+Date , start , Duration , Proto , srcIP , srcPort , dstIP , dstPort , Flags , Tos , Packets , Bytes , Flows
 
 
+The program can understand automatically the netflow files created by Argus and nfdump. 
+
+For Argus, you should create the netflow file with the ra tool with the following configuration
+(/etc/rc.conf)
+RA_PRINT_LABELS=0
+RA_FIELD_DELIMITER='\t'
+RA_USEC_PRECISION=6
+RA_PRINT_NAMES=0
+RA_TIME_FORMAT="%Y/%m/%d %T.%f"
+RA_FIELD_SPECIFIER= stime dur proto:10 saddr:27 sport dir daddr:27 dport state stos dtos pkts bytes
+
+And also you may run ra with -n so you can see the port numbers.

@@ -159,16 +159,16 @@ class labeler():
 
         
             # Process all the conditions 
-            if debug:
-                print 'Processing the conditions'
+            #if debug:
+            #    print 'Processing the conditions'
             for group in self.conditionsGroup:
                 labelToVerify = group.keys()[0]
-                if debug:
-                    print '\tLabel to verify {0}'.format(labelToVerify)
+                #if debug:
+                #    print '\tLabel to verify {0}'.format(labelToVerify)
 
                 orConditions = group[labelToVerify]
-                if debug:
-                    print '\t\tOr conditions group : {0}'.format(orConditions)
+                #if debug:
+                #    print '\t\tOr conditions group : {0}'.format(orConditions)
 
 
                 # orConditions is an array. Each position of this array should be ORed with the next position
@@ -202,8 +202,8 @@ class labeler():
 
                     if allTrue:
                         labelToReturn = labelToVerify
-                        if debug:
-                            print '\tNew label assigned: {0}'.format(labelToVerify)
+                        #if debug:
+                        #    print '\tNew label assigned: {0}'.format(labelToVerify)
                         
             if verbose:
                 if 'Background' in labelToReturn:
@@ -235,9 +235,13 @@ def output_netflow_line_to_file(outputfile, netflowArray):
     try:
         global debug
         global verbose
-
-        # Date
-        outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '   ' + str(netflowArray[12]['Flows']) + '  ' + str(netflowArray[13]['Label']) + '\n'
+        
+        if netflowArray[12].keys()[0] == 'Flows':
+            # nfdump
+            outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '   ' + str(netflowArray[12]['Flows']) + '  ' + str(netflowArray[13]['Label']) + '\n'
+        else:
+            # argus
+            outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '  ' + str(netflowArray[12]['Label']) + '\n'
         outputfile.writelines(outputline)
 
 
@@ -575,11 +579,11 @@ def process_netflow(netflowFile, labelmachine):
             netflowArray.append(columnDict)
             columnDict = {}
 
-            columnDict['State'] = ""
+            columnDict['Flags'] = ""
             netflowArray.append(columnDict)
             columnDict = {}
 
-            columnDict['Flags'] = ""
+            columnDict['Tos'] = ""
             netflowArray.append(columnDict)
             columnDict = {}
 
@@ -624,35 +628,35 @@ def process_netflow(netflowFile, labelmachine):
                 #    print columnValues
 
                 # Date
-                date = ''
+                date = columnValues[0]
                 # Store the value in the dict
                 dict = netflowArray[0]
                 columnName = dict.keys()[0] 
                 dict[columnName] = date
                 netflowArray[0] = dict
 
-                hour = columnValues[0]
+                hour = columnValues[1]
                 # Store the value in the dict
                 dict = netflowArray[1]
                 columnName = dict.keys()[0] 
                 dict[columnName] = hour
                 netflowArray[1] = dict
 
-                duration = columnValues[1]
+                duration = columnValues[2]
                 # Store the value in the dict
                 dict = netflowArray[2]
                 columnName = dict.keys()[0] 
                 dict[columnName] = duration
                 netflowArray[2] = dict
 
-                protocol = columnValues[2]
+                protocol = columnValues[3]
                 # Store the value in the dict
                 dict = netflowArray[3]
                 columnName = dict.keys()[0] 
                 dict[columnName] = protocol
                 netflowArray[3] = dict
 
-                srcIP = columnValues[3]
+                srcIP = columnValues[4]
                 # Store the value in the dict
                 dict = netflowArray[4]
                 columnName = dict.keys()[0] 
@@ -660,42 +664,159 @@ def process_netflow(netflowFile, labelmachine):
                 netflowArray[4] = dict
 
                 if 'arp' in protocol:
-                    pass
+                    srcPort = '0'   
+                    # Store the value in the dict
+                    dict = netflowArray[5]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = srcPort
+                    netflowArray[5] = dict
+                else:
+                    srcPort = columnValues[5]
+                    # Store the value in the dict
+                    dict = netflowArray[5]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = srcPort
+                    netflowArray[5] = dict
 
-                srcPort = columnValues[4]
+
+                dstIP = columnValues[6] 
                 # Store the value in the dict
-                dict = netflowArray[5]
+                dict = netflowArray[6]
                 columnName = dict.keys()[0] 
-                dict[columnName] = srcPort
-                netflowArray[5] = dict
+                dict[columnName] = dstIP
+                netflowArray[6] = dict
+
+
+                if 'arp' in protocol:
+                    dstPort = '0'   
+                    # Store the value in the dict
+                    dict = netflowArray[7]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = dstPort
+                    netflowArray[7] = dict
+
+                    Flags = columnValues[8]
+                    # Store the value in the dict
+                    dict = netflowArray[8]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Flags
+                    netflowArray[8] = dict
+
+                else:
+                    dstPort = columnValues[7]
+                    # Store the value in the dict
+                    dict = netflowArray[7]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = dstPort
+                    netflowArray[7] = dict
+
+                    Flags = columnValues[8]
+                    # Store the value in the dict
+                    dict = netflowArray[8]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Flags
+                    netflowArray[8] = dict
+
+
+
+                if 'llc' in protocol:
+                    Tos = '0'
+                    # Store the value in the dict
+                    dict = netflowArray[9]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Tos
+                    netflowArray[9] = dict
+
+                    Packets = columnValues[9]
+                    # Store the value in the dict
+                    dict = netflowArray[10]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Packets
+                    netflowArray[10] = dict
+
+                    Bytes = columnValues[10]
+                    # Store the value in the dict
+                    dict = netflowArray[11]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Bytes
+                    netflowArray[11] = dict
+
+                    # Request a label
+                    label = labelmachine.getLabel(netflowArray)
+                    # Store the value in the dict
+                    dict = netflowArray[12]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = label
+                    netflowArray[12] = dict
+                elif 'arp' in protocol:
+                    Tos = '0'
+                    # Store the value in the dict
+                    dict = netflowArray[9]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Tos
+                    netflowArray[9] = dict
+
+                    Packets = columnValues[8]
+                    # Store the value in the dict
+                    dict = netflowArray[10]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Packets
+                    netflowArray[10] = dict
+
+                    Bytes = columnValues[9]
+                    # Store the value in the dict
+                    dict = netflowArray[11]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Bytes
+                    netflowArray[11] = dict
+
+                    # Request a label
+                    label = labelmachine.getLabel(netflowArray)
+                    # Store the value in the dict
+                    dict = netflowArray[12]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = label
+                    netflowArray[12] = dict
+                else:
+                    Tos = columnValues[9]
+                    # Store the value in the dict
+                    dict = netflowArray[9]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Tos
+                    netflowArray[9] = dict
+
+                    Packets = columnValues[10]
+                    # Store the value in the dict
+                    dict = netflowArray[10]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Packets
+                    netflowArray[10] = dict
+
+                    Bytes = columnValues[11]
+                    # Store the value in the dict
+                    dict = netflowArray[11]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = Bytes
+                    netflowArray[11] = dict
+
+                    # Request a label
+                    label = labelmachine.getLabel(netflowArray)
+                    # Store the value in the dict
+                    dict = netflowArray[12]
+                    columnName = dict.keys()[0] 
+                    dict[columnName] = label
+                    netflowArray[12] = dict
 
                 if debug:
-                    print 'netflowArray'
                     print netflowArray
-                    raw_input()
 
+                # Ask to store the netflow
+                output_netflow_line_to_file(outputfile, netflowArray)
 
                 line = f.readline()
                 amountOfLines += 1
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            raw_input()
-
-
-
+            # End while
 
         # Close the outputfile
         outputfile.close()
