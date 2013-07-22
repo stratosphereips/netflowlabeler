@@ -204,17 +204,30 @@ class labeler():
                                     print '\t\t\tFalse (negative)'
                                 allTrue = False
                                 break
-                        elif (condValue == netflowValue) or (condValue == 'all') :
+                        elif condValue.find('!') == -1:
                             # This is positive condition
-                            allTrue = True
-                            #if debug:
-                            #    print '\t\t\tTrue'
-                            continue
-                        else:
-                            if debug:
-                                print '\t\t\tFalse'
-                            allTrue = False
-                            break
+                            if (condColumn == 'Bytes') or (condColumn == 'Packets'):
+                                # We should be greater than or equal to these values...
+                                if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
+                                    allTrue = True
+                                    if debug:
+                                        print '\t\t\tTrue'
+                                    continue
+                                else:
+                                    if debug:
+                                        print '\t\t\tFalse'
+                                    allTrue = False
+                                    break
+                            elif (condValue == netflowValue) or (condValue == 'all') :
+                                allTrue = True
+                                #if debug:
+                                #    print '\t\t\tTrue'
+                                continue
+                            else:
+                                if debug:
+                                    print '\t\t\tFalse'
+                                allTrue = False
+                                break
 
                     if allTrue:
                         labelToReturn = labelToVerify
@@ -257,7 +270,7 @@ def output_netflow_line_to_file(outputfile, netflowArray):
             outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '   ' + str(netflowArray[12]['Flows']) + '  ' + str(netflowArray[13]['Label']) + '\n'
         else:
             # argus
-            outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '  ' + str(netflowArray[12]['Label']) + '\n'
+            outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + '\t' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + '\t' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '  ' + str(netflowArray[12]['Label']) + '\n'
         outputfile.writelines(outputline)
 
 
@@ -622,7 +635,7 @@ def process_netflow(netflowFile, labelmachine):
             outputfile = open(netflowFile+'.labeled','w+')
             
             # Write the column names
-            columnnames = "StartTime       Dur     Proto   SrcAddr Sport   Dir     DstAddr Dport   State   sTos    TotPkts TotBytes\n"
+            columnnames = "Date Time       Dur     Proto   SrcAddr Sport   Dir     DstAddr Dport   State   sTos    TotPkts TotBytes Label\n"
             outputfile.writelines(columnnames)
 
 
