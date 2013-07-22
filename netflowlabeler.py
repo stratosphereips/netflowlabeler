@@ -163,8 +163,8 @@ class labeler():
             #    print 'Processing the conditions'
             for group in self.conditionsGroup:
                 labelToVerify = group.keys()[0]
-                #if debug:
-                #    print '\tLabel to verify {0}'.format(labelToVerify)
+                if debug:
+                    print '\tLabel to verify {0}'.format(labelToVerify)
 
                 orConditions = group[labelToVerify]
                 #if debug:
@@ -184,7 +184,8 @@ class labeler():
                         #   print '\t\t\tAnd this with : {0}'.format(acond)
 
                         condColumn = acond.keys()[0]
-                        condValue = acond[condColumn]
+                        condValue = acond[condColumn].lower()
+
                         netflowValue = netflowDict[condColumn]
                         #if debug:
                         #    print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
@@ -202,8 +203,8 @@ class labeler():
 
                     if allTrue:
                         labelToReturn = labelToVerify
-                        #if debug:
-                        #    print '\tNew label assigned: {0}'.format(labelToVerify)
+                        if debug:
+                            print '\tNew label assigned: {0}'.format(labelToVerify)
                         
             if verbose:
                 if 'Background' in labelToReturn:
