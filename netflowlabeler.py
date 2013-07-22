@@ -187,17 +187,32 @@ class labeler():
                         condValue = acond[condColumn].lower()
 
                         netflowValue = netflowDict[condColumn]
-                        #if debug:
-                        #    print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
-
-                        if (condValue == netflowValue) or (condValue == 'all') :
+                        if debug:
+                            print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
+                    
+                        if condValue.find('!') != -1:
+                            # This is negative condition
+                            temp = condValue.split('!')[1]
+                            condValue = temp
+                            if (condValue != netflowValue) or (condValue == 'all') :
+                                allTrue = True
+                                if debug:
+                                    print '\t\t\tTrue (negative)'
+                                continue
+                            else:
+                                if debug:
+                                    print '\t\t\tFalse (negative)'
+                                allTrue = False
+                                break
+                        elif (condValue == netflowValue) or (condValue == 'all') :
+                            # This is positive condition
                             allTrue = True
                             #if debug:
                             #    print '\t\t\tTrue'
                             continue
                         else:
-                            #if debug:
-                            #    print '\t\t\tFalse'
+                            if debug:
+                                print '\t\t\tFalse'
                             allTrue = False
                             break
 
