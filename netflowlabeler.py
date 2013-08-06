@@ -185,7 +185,6 @@ class labeler():
 
                         condColumn = acond.keys()[0]
                         condValue = acond[condColumn].lower()
-                        print netflowDict
 
                         netflowValue = netflowDict[condColumn]
                         #if debug:
