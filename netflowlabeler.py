@@ -168,27 +168,28 @@ class labeler():
 
                 orConditions = group[labelToVerify]
                 #if debug:
-                #    print '\t\tOr conditions group : {0}'.format(orConditions)
+                    #print '\t\tOr conditions group : {0}'.format(orConditions)
 
 
                 # orConditions is an array. Each position of this array should be ORed with the next position
                 for andcondition in orConditions:
                     # If any of these andConditions groups is true, just return the label, because this for is an 'OR'
                     #if debug:
-                    #    print '\t\tAnd condition group : {0}'.format(andcondition)
+                        #print '\t\tAnd condition group : {0}'.format(andcondition)
 
                     # With this we keep control of how each part of the and is going...
                     allTrue = True
                     for acond in andcondition:
                         #if debug:
-                        #   print '\t\t\tAnd this with : {0}'.format(acond)
+                           #print '\t\t\tAnd this with : {0}'.format(acond)
 
                         condColumn = acond.keys()[0]
                         condValue = acond[condColumn].lower()
+                        print netflowDict
 
                         netflowValue = netflowDict[condColumn]
-                        if debug:
-                            print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
+                        #if debug:
+                            #print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
                     
                         if condValue.find('!') != -1:
                             # This is negative condition
@@ -264,6 +265,8 @@ def output_netflow_line_to_file(outputfile, netflowArray):
     try:
         global debug
         global verbose
+        #if debug:
+        #    print 'NetFlowArray: {}'.format(netflowArray)
         
         if netflowArray[12].keys()[0] == 'Flows':
             # nfdump
@@ -356,6 +359,18 @@ def process_netflow(netflowFile, labelmachine):
                     columnDict = {}
                 elif 'Addr' in cN:
                     pass
+                elif 'Prot' in cN:
+                    columnDict['Proto'] = ""
+                    netflowArray.append(columnDict)
+                    columnDict = {}
+                elif 'Durat' in cN:
+                    columnDict['Duration'] = ""
+                    netflowArray.append(columnDict)
+                    columnDict = {}
+                elif 'Flow' in cN:
+                    columnDict['Flows'] = ""
+                    netflowArray.append(columnDict)
+                    columnDict = {}
                 else:
                     columnDict[cN] = ""
                     netflowArray.append(columnDict)
@@ -366,8 +381,8 @@ def process_netflow(netflowFile, labelmachine):
             columnDict = {}
 
             #if debug:
-            #    print 'netflowArray'
-            #    print netflowArray
+                #print 'netflowArray'
+                #print netflowArray
 
             # Create the output file with the header
             outputfile = open(netflowFile+'.labeled','w+')
@@ -420,11 +435,12 @@ def process_netflow(netflowFile, labelmachine):
                 # Store the value in the dict
                 dict = netflowArray[3]
                 columnName = dict.keys()[0] 
+                #columnName = 'Proto'
                 dict[columnName] = protocol
                 netflowArray[3] = dict
 
                 
-                if 'TCP' in protocol or 'UDP' in protocol or 'RTP' in protocol or 'IGMP' in protocol:
+                if 'TCP' in protocol or 'UDP' in protocol or 'RTP' in protocol:
                     temp = columnValues[4]
                     if len(temp.split(':')) <= 2:
                         # It is IPV4
@@ -458,8 +474,10 @@ def process_netflow(netflowFile, labelmachine):
                         netflowArray[7] = dict
                     else:
                         # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow... so I'm leaving this for later
+                        line = f.readline()
+                        amountOfLines += 1
                         continue
-                elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS':
+                elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS' or protocol == 'IGMP':
                     srcip = temp = columnValues[4]
                     # Store the value in the dict
                     dict = netflowArray[4]
@@ -490,6 +508,8 @@ def process_netflow(netflowFile, labelmachine):
 
                 elif 'IPV6' in protocol or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol or 'llc' in protocol:
                     # Not now.... so do it later
+                    line = f.readline()
+                    amountOfLines += 1
                     continue
 
                 flags = columnValues[6]
@@ -836,8 +856,8 @@ def process_netflow(netflowFile, labelmachine):
                     dict[columnName] = label
                     netflowArray[12] = dict
 
-                if debug:
-                    print netflowArray
+                #if debug:
+                #    print netflowArray
 
                 # Ask to store the netflow
                 output_netflow_line_to_file(outputfile, netflowArray)
