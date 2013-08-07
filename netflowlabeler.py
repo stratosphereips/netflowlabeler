@@ -184,7 +184,7 @@ class labeler():
                            #print '\t\t\tAnd this with : {0}'.format(acond)
 
                         condColumn = acond.keys()[0]
-                        condValue = acond[condColumn].lower()
+                        condValue = acond[condColumn].upper()
 
                         netflowValue = netflowDict[condColumn]
                         #if debug:
@@ -430,7 +430,7 @@ def process_netflow(netflowFile, labelmachine):
                 dict[columnName] = duration
                 netflowArray[2] = dict
 
-                protocol = columnValues[3]
+                protocol = columnValues[3].upper()
                 # Store the value in the dict
                 dict = netflowArray[3]
                 columnName = dict.keys()[0] 
@@ -511,7 +511,7 @@ def process_netflow(netflowFile, labelmachine):
                     amountOfLines += 1
                     continue
 
-                flags = columnValues[6]
+                flags = columnValues[6].upper()
                 # Store the value in the dict
                 dict = netflowArray[8]
                 columnName = dict.keys()[0] 
@@ -697,7 +697,7 @@ def process_netflow(netflowFile, labelmachine):
                 dict[columnName] = duration
                 netflowArray[2] = dict
 
-                protocol = columnValues[3]
+                protocol = columnValues[3].upper()
                 # Store the value in the dict
                 dict = netflowArray[3]
                 columnName = dict.keys()[0] 
@@ -711,7 +711,7 @@ def process_netflow(netflowFile, labelmachine):
                 dict[columnName] = srcIP
                 netflowArray[4] = dict
 
-                if 'arp' in protocol:
+                if 'ARP' in protocol:
                     srcPort = '0'   
                     # Store the value in the dict
                     dict = netflowArray[5]
@@ -735,7 +735,7 @@ def process_netflow(netflowFile, labelmachine):
                 netflowArray[6] = dict
 
 
-                if 'arp' in protocol:
+                if 'ARP' in protocol:
                     dstPort = '0'   
                     # Store the value in the dict
                     dict = netflowArray[7]
@@ -767,7 +767,7 @@ def process_netflow(netflowFile, labelmachine):
 
 
 
-                if 'llc' in protocol:
+                if 'LLC' in protocol:
                     Tos = '0'
                     # Store the value in the dict
                     dict = netflowArray[9]
@@ -796,7 +796,7 @@ def process_netflow(netflowFile, labelmachine):
                     columnName = dict.keys()[0] 
                     dict[columnName] = label
                     netflowArray[12] = dict
-                elif 'arp' in protocol:
+                elif 'ARP' in protocol:
                     Tos = '0'
                     # Store the value in the dict
                     dict = netflowArray[9]
