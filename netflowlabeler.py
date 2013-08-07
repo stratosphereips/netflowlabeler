@@ -194,7 +194,7 @@ class labeler():
                             # This is negative condition
                             temp = condValue.split('!')[1]
                             condValue = temp
-                            if (condValue != netflowValue) or (condValue == 'all') :
+                            if (condValue != netflowValue) or (condValue == 'ALL') :
                                 allTrue = True
                                 if debug:
                                     print '\t\t\tTrue (negative)'
@@ -208,7 +208,7 @@ class labeler():
                             # This is positive condition
                             if (condColumn == 'Bytes') or (condColumn == 'Packets'):
                                 # We should be greater than or equal to these values...
-                                if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
+                                if (int(condValue) <= int(netflowValue)) or (condValue == 'ALL') :
                                     allTrue = True
                                     if debug:
                                         print '\t\t\tTrue'
@@ -218,7 +218,7 @@ class labeler():
                                         print '\t\t\tFalse'
                                     allTrue = False
                                     break
-                            elif (condValue == netflowValue) or (condValue == 'all') :
+                            elif (condValue == netflowValue) or (condValue == 'ALL') :
                                 allTrue = True
                                 #if debug:
                                 #    print '\t\t\tTrue'
