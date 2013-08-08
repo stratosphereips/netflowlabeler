@@ -187,8 +187,8 @@ class labeler():
                         condValue = acond[condColumn].upper()
 
                         netflowValue = netflowDict[condColumn]
-                        #if debug:
-                            #print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
+                        if debug:
+                            print '\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue)
                     
                         if condValue.find('!') != -1:
                             # This is negative condition
@@ -896,62 +896,49 @@ def loadConditions(configFile, labelmachine):
         except:
             print 'The file \'{0}\' couldn\'t be opened.'.format(configFile)
             exit(1)
-        try:
-            if debug:
-                print 'Loading the conditions from the configuration file '                    
-            parsedFile = yaml.load(conf)
-        except:
-            print 'The format of the configuration file is wrong. You should see the config.example for reference.'
-            exit(1)
 
-        try:
-            if debug:
-                print 'Formatting the conditions' 
-            conditions = {}
-            listOfKeys = parsedFile.keys()
-            listOfKeys.sort()
-            for key in listOfKeys:
-                # we strip the number from the label. From '0 - label' to 'label'
-                strippedKey = key.split('- ')[1]
+
+        if debug:
+            print 'Loading the conditions from the configuration file '                    
+
+        # Read the conf file
+        line = conf.readline()
+        conditions = {}
+
+        while (line):
+            # Ignore comments
+            if line.strip().find('#') == 0:
+                line = conf.readline()
+                continue
+
+            # Read a label
+            if line.strip()[0] != '-':
+                label = line.split(':')[0]
                 #if debug:
-                #    print 'Processing key: {}'.format(key)
-                #    if verbose:
-                #        print '\tStripped key to use: {}'.format(strippedKey)
-            
-                conditions[strippedKey]=[]
-                #if debug and verbose:
-                #    print '\tCreated dictionary with the stripped key: {}'.format(conditions)
-                for cond in parsedFile[key]:
-                #    if debug:
-                #        print '\tAnalyzing conditions \'{}\' for key {}'.format(cond,key)
-                    ands=[]
-                    for pair in cond.split(' & '):
-                #        if debug and verbose:
-                #            print '\tAnalyzing the pair of conditions: \'{}\''.format(pair)
-                        i={}
-                        i[pair.split('=')[0]]=pair.split('=')[1]
-                #        if debug and verbose:
-                #            print '\tNew dict with the pair of conditions: {}'.format(i)
-                        ands.append(i)
-                #        if debug and verbose:
-                #            print '\tThe list of \'and\' conditions has been updated: {}'.format(ands)
-                    conditions[strippedKey].append(ands)
-                conditionsList.append(conditions)
-                #if debug: 
-                #    print '\tConditions for label \'{}\': {}'.format(key,conditions)
-                #    print '\tConditions list: {}'.format(conditionsList)
-                conditions = {}
-        except:
-            print 'Error formatting the conditions on loadConditions()'
+                #    print 'Label: {}'.format(label)
+                conditions[label]=[]
 
-        try:
-            #if debug:
-            #    print 'Adding the conditions to the labeler instance'
-            for cond in conditionsList:
-                labelmachine.addCondition(cond) 
-            print 'Conditions loaded sucessfully.'
-        except:
-            print 'Error formatting the conditions on loadConditions()'
+                # Now read all the conditions for this label
+                line = conf.readline()
+                while (line):
+                    if line.strip()[0] == '-':
+                        # Condition
+                        tempAndConditions = line.strip().split('-')[1]
+                        #if debug:
+                        #    print 'Condition: {}'.format(tempAndConditions)
+                        andConditions = []
+                        for andCond in tempAndConditions.split('&'):
+                            tempdict = {}
+                            tempdict[andCond.strip().split('=')[0]] = andCond.strip().split('=')[1]
+                            andConditions.append(tempdict)
+
+                        conditions[label].append(andConditions)
+
+                        line = conf.readline()
+                    else:
+                        break
+            labelmachine.addCondition(conditions) 
+            conditions = {}
 
     except KeyboardInterrupt:
         # CTRL-C pretty handling.
