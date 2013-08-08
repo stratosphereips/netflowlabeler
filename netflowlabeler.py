@@ -476,7 +476,7 @@ def process_netflow(netflowFile, labelmachine):
                         columnName = dict.keys()[0] 
                         dict[columnName] = dstport
                         netflowArray[7] = dict
-                    if len(temp.split(':')) > 2:
+                    elif len(temp.split(':')) > 2:
                         # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow..
                         srcip = temp[0:temp.rfind(':')]
                         # Store the value in the dict
