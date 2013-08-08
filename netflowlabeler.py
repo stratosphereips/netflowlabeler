@@ -32,7 +32,6 @@
 import getopt
 import sys
 import re
-import yaml
 
 ####################
 # Global Variables
@@ -324,6 +323,9 @@ def process_netflow(netflowFile, labelmachine):
         # nfdump processing...
 
         # What are we analyzing nfdump files or argus files?
+        if 'Date' not in line and 'StartTime' not in line:
+            print 'The file has not headers. Please add them.'
+            sys.exit(-1)
         if 'Date' in line:
             # This is nfdump files...
 
@@ -476,10 +478,11 @@ def process_netflow(netflowFile, labelmachine):
                         netflowArray[7] = dict
                     else:
                         # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow... so I'm leaving this for later
-                        line = f.readline()
-                        amountOfLines += 1
-                        continue
-                elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS' or protocol == 'IGMP':
+                        print 
+                        print 'Please implement this protocol!'
+                        print line
+                        sys.exit(-1)
+                elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS' or protocol == 'IGMP' or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol or 'IPV6' in protocol:
                     srcip = temp = columnValues[4]
                     # Store the value in the dict
                     dict = netflowArray[4]
@@ -507,12 +510,6 @@ def process_netflow(netflowFile, labelmachine):
                     columnName = dict.keys()[0] 
                     dict[columnName] = dstport
                     netflowArray[7] = dict
-
-                elif 'IPV6' in protocol or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol or 'llc' in protocol:
-                    # Not now.... so do it later
-                    line = f.readline()
-                    amountOfLines += 1
-                    continue
 
                 flags = columnValues[6].upper()
                 # Store the value in the dict
