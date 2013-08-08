@@ -23,6 +23,9 @@
 
 # Description
 # A tool to add labels in netflow files
+#
+# TODO
+# Take the flags into account
 
 
 # standard imports
@@ -35,7 +38,7 @@ import yaml
 # Global Variables
 
 debug = 0
-vernum = "0.2"
+vernum = "0.3"
 verbose = False
 
 #########

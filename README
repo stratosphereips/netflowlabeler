@@ -7,19 +7,19 @@ Configuration File
 ------------------
 The conf file syntax is like this:
 
-0 - Background:
+Background:
     - srcIP=all
-1 - Normal:
+Normal:
     - Proto=ARP
     - Proto=IGMP
-2 - Botnet-DGA:
+Botnet-DGA:
     - Proto=UDP & dstPort=53
     - Proto=UDP & srcPort=53
-3 - Botnet-CC:
+Botnet-CC:
     - srcIP=10.0.0.151 & Proto=TCP
     - dstIP=10.0.0.151 & Proto=TCP
 
-The numbers are the priority of the rule. First we check the 0 rule and if it matches then we assign that label. Then we check the 1 rule, etc.
+The position is the priority of the rule. First we check the first rule and if it matches then we assign that label. Then we check the second rule, etc.
 All the rules below a label are ORed. You can use & to AND different rules.
 
 These are the possible fields that you can use in a configuration file to create the rules used for labeling.
@@ -37,4 +37,7 @@ RA_PRINT_NAMES=0
 RA_TIME_FORMAT="%Y/%m/%d %T.%f"
 RA_FIELD_SPECIFIER= stime dur proto:10 saddr:27 sport dir daddr:27 dport state stos dtos pkts bytes
 
-And also you may run ra with -n so you can see the port numbers.
+Also you may run ra with -n so you can see the port numbers.
+
+Any column after the last netflow official column is ignored (for example, if you had a label)
+
