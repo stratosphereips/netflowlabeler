@@ -476,8 +476,37 @@ def process_netflow(netflowFile, labelmachine):
                         columnName = dict.keys()[0] 
                         dict[columnName] = dstport
                         netflowArray[7] = dict
+                    if len(temp.split(':')) > 2:
+                        # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow..
+                        srcip = temp[0:temp.rfind(':')]
+                        # Store the value in the dict
+                        dict = netflowArray[4]
+                        columnName = dict.keys()[0] 
+                        dict[columnName] = srcip
+                        netflowArray[4] = dict
+
+                        srcport = temp[temp.rfind(':')+1:]
+                        # Store the value in the dict
+                        dict = netflowArray[5]
+                        columnName = dict.keys()[0] 
+                        dict[columnName] = srcport
+                        netflowArray[5] = dict
+
+                        temp2 = columnValues[5]
+                        dstip = temp2[0:temp2.rfind(':')]
+                        # Store the value in the dict
+                        dict = netflowArray[6]
+                        columnName = dict.keys()[0] 
+                        dict[columnName] = dstip
+                        netflowArray[6] = dict
+
+                        dstport = temp2[temp2.rfind(':')+1:]
+                        # Store the value in the dict
+                        dict = netflowArray[7]
+                        columnName = dict.keys()[0] 
+                        dict[columnName] = dstport
+                        netflowArray[7] = dict
                     else:
-                        # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow... so I'm leaving this for later
                         print 
                         print 'Please implement this protocol!'
                         print line
