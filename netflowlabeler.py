@@ -642,16 +642,15 @@ def define_type(data):
 
 def process_netflow(netflowFile, labelmachine):
     """
-    This function takes the netflowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
+    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
     """
     try:
         global debug
         global verbose
         if verbose:
-            print('Processing the netflow file {0}'.format(netflowFile))
+            print('Processing the flow file {0}'.format(netflowFile))
 
-
-        # Read the netflow and parse the input
+        # Open flows file
         try:
             f = open(netflowFile,'r')
         except Exception as inst:
