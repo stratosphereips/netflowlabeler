@@ -577,6 +577,69 @@ def process_nfdump(f, headers, netflowFile, labelmachine):
     outputfile.close()
 
 
+def define_type(data):
+    """
+    Try to define very fast the type of input from :Zeek file, Suricata json, Argus binetflow CSV, Argus binetflow TSV
+    Using a Heuristic detection
+    Input: The first line after the headers if there were some, as 'data'
+    Outputs types can be can be: zeek-json, suricata, argus-tabs, argus-csv, zeek-tabs
+    """
+    try:
+        # If line json, it can be Zeek or suricata
+        # If line CSV, it can be Argus 
+        # If line TSV, it can be Argus  or zeek
+
+        input_type = 'unknown'
+
+        # Is it json?
+        try:
+            json_line = json.loads(data)
+            # json
+            try:
+                # Zeek?
+                _ = json_line['ts']
+                input_type = 'zeek-json'
+                return input_type
+            except KeyError:
+                # Suricata?
+                _ = json_line['timestamp']
+                input_type = 'suricata-json'
+                return input_type
+        except json.JSONDecodeError:
+            # No json
+            if type(data) == str:
+                # string
+                nr_commas = len(data.split(','))
+                nr_tabs = len(data.split('	'))
+                if nr_commas > nr_tabs:
+                    # Commas is the separator
+                    if nr_commas > 40:
+                        input_type = 'nfdump-csv'
+                    else:
+                        # comma separated argus file
+                        input_type = 'argus-csv'
+                elif nr_tabs >= nr_commas:
+                    # Tabs is the separator or it can be also equal number of commas and tabs, including both 0
+                    # Can be Zeek conn.log with TABS
+                    # Can be Argus binetflow with TABS
+                    # Can be Nfdump binetflow with TABS
+                    if '->' in data or 'StartTime' in data:
+                        input_type = 'argus-tabs'
+                    elif 'separator' in data:
+                        input_type = 'zeek-tabs'
+                    elif 'Date' in data:
+                        input_type = 'nfdump-tabs'
+
+            return input_type
+
+    except Exception as inst:
+        exception_line = sys.exc_info()[2].tb_lineno
+        print(f'\tProblem in define_type() line {exception_line}', 0, 1)
+        print(str(type(inst)), 0, 1)
+        print(str(inst), 0, 1)
+        sys.exit(1)
+
+
 def process_netflow(netflowFile, labelmachine):
     """
     This function takes the netflowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
@@ -598,23 +661,36 @@ def process_netflow(netflowFile, labelmachine):
             print(inst)           # __str__ allows args to printed directly
             exit(-1)
 
-          
-       
-        # How to separate files?
-        # nfdump header starts with 'Date'
-        # binetflow header starts with 'StarTime'
-        # Zeek conn.log file header in TAB format starts with '#separator'
-        # Zeek conn.log file header in json format starts with '{"ts":' but no space
+        # We need to separate the lines in its parts, then recognize the columns, then build a structure with the columns that is common for all
+        # The headers may tell which colums they are
 
-        headers = f.readline()
+        # Get the headers
+        headerline = f.readline()
+
+        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date' 
+        if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
+            print('The file has not headers. Please add them.')
+            sys.exit(-1)
+
+        filetype = define_type(headerline)
+        print(filetype)
+        return True
+
+        #if '#' in line[0]:
+        #while line:
+
+        # Read headers  
+        line = f.readline()
+
+
+
+
+
+
 
         ##################
         # nfdump processing...
 
-        # What are we analyzing nfdump files or argus files?
-        if 'Date' not in headers and 'StartTime' not in headers:
-            print('The file has not headers. Please add them.')
-            sys.exit(-1)
 
         if 'Date' in headers:
             amountOfLines = process_nfdump(f, headers, netflowFile, labelmachine)
