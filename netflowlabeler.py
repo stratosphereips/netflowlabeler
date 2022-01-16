@@ -577,6 +577,75 @@ def process_nfdump(f, headers, netflowFile, labelmachine):
     outputfile.close()
 
 
+def define_columns(self, new_line):
+    """ Define the columns for Argus and Zeek-tabs from the line received """
+    # These are the indexes for later fast processing
+    line = new_line['data']
+    self.column_idx = {}
+    self.column_idx['starttime'] = False
+    self.column_idx['endtime'] = False
+    self.column_idx['dur'] = False
+    self.column_idx['proto'] = False
+    self.column_idx['appproto'] = False
+    self.column_idx['saddr'] = False
+    self.column_idx['sport'] = False
+    self.column_idx['dir'] = False
+    self.column_idx['daddr'] = False
+    self.column_idx['dport'] = False
+    self.column_idx['state'] = False
+    self.column_idx['pkts'] = False
+    self.column_idx['spkts'] = False
+    self.column_idx['dpkts'] = False
+    self.column_idx['bytes'] = False
+    self.column_idx['sbytes'] = False
+    self.column_idx['dbytes'] = False
+
+    try:
+        nline = line.strip().split(self.separator)
+        for field in nline:
+            if 'time' in field.lower():
+                self.column_idx['starttime'] = nline.index(field)
+            elif 'dur' in field.lower():
+                self.column_idx['dur'] = nline.index(field)
+            elif 'proto' in field.lower():
+                self.column_idx['proto'] = nline.index(field)
+            elif 'srca' in field.lower():
+                self.column_idx['saddr'] = nline.index(field)
+            elif 'sport' in field.lower():
+                self.column_idx['sport'] = nline.index(field)
+            elif 'dir' in field.lower():
+                self.column_idx['dir'] = nline.index(field)
+            elif 'dsta' in field.lower():
+                self.column_idx['daddr'] = nline.index(field)
+            elif 'dport' in field.lower():
+                self.column_idx['dport'] = nline.index(field)
+            elif 'state' in field.lower():
+                self.column_idx['state'] = nline.index(field)
+            elif 'totpkts' in field.lower():
+                self.column_idx['pkts'] = nline.index(field)
+            elif 'totbytes' in field.lower():
+                self.column_idx['bytes'] = nline.index(field)
+            elif 'srcbytes' in field.lower():
+                self.column_idx['sbytes'] = nline.index(field)
+        # Some of the fields were not found probably,
+        # so just delete them from the index if their value is False.
+        # If not we will believe that we have data on them
+        # We need a temp dict because we can not change the size of dict while analyzing it
+        temp_dict = {}
+        for i in self.column_idx:
+            if type(self.column_idx[i]) == bool and self.column_idx[i] == False:
+                continue
+            temp_dict[i] = self.column_idx[i]
+        self.column_idx = temp_dict
+        return self.column_idx
+    except Exception as inst:
+        exception_line = sys.exc_info()[2].tb_lineno
+        self.print(f'\tProblem in define_columns() line {exception_line}', 0, 1)
+        self.print(str(type(inst)), 0, 1)
+        self.print(str(inst), 0, 1)
+        sys.exit(1)
+
+
 def define_type(data):
     """
     Try to define very fast the type of input from :Zeek file, Suricata json, Argus binetflow CSV, Argus binetflow TSV
