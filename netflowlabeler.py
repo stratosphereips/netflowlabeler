@@ -32,12 +32,13 @@
 import getopt
 import sys
 import re
+import json
 
 ####################
 # Global Variables
 
 debug = 0
-vernum = "0.3"
+vernum = "0.4"
 verbose = False
 
 #########
@@ -54,7 +55,7 @@ def version():
     print("|                                                                      |")
     print("| Author: Garcia Sebastian, eldraco@gmail.com                          |")
     print("| Author: Veronica Valeros, vero.valeros@gmail.com                     |")
-    print("| UNICEN-ISISTAN, Argentina. CTU, Prague-ATG                           |")
+    print("| Stratosphere Laboratory, Czech Technical University in Prague        |")
     print("+----------------------------------------------------------------------+")
     print()
 
@@ -70,7 +71,7 @@ def usage():
     print("|                                                                      |")
     print("| Author: Garcia Sebastian, eldraco@gmail.com                          |")
     print("| Author: Veronica Valeros, vero.valeros@gmail.com                     |")
-    print("| UNICEN-ISISTAN, Argentina. CTU, Prague-ATG                           |")
+    print("| Stratosphere Laboratory, Czech Technical University in Prague        |")
     print("+----------------------------------------------------------------------+")
     print("\nusage: %s <options>" % sys.argv[0])
     print("options:")
@@ -255,6 +256,8 @@ class labeler():
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
             exit(-1)
+
+
 
 
 
