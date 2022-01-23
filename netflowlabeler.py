@@ -81,56 +81,45 @@ class labeler():
             exit(-1)
 
 
-    def getLabel(self,netflowLine):
+    def getLabel(self, column_values):
         """
-        Get a netflow line and return a label
-        Input: netflowLine is a string? or a dictionary?
+        Get the values of the columns of a netflow line and return a label
+        Input: column_values is a dict, where each key is the standard field in a netflow
         """
         try:
-            #if args.debug > 0:
-            #    print 'Netflow line asked: {0}'.format(netflowLine)
-
             # Default to empty label
             labelToReturn= ""
 
-            # Convert the neflowLine array to a dict...
-            netflowDict = {}
-            for item in netflowLine:
-               name = list(item.keys())[0]
-               netflowDict[name] = item[name]
-
-        
             # Process all the conditions 
-            #if args.debug > 0:
-            #    print 'Processing the conditions'
             for group in self.conditionsGroup:
+                # The first key of the group is the label to put 
                 labelToVerify = list(group.keys())[0]
                 if args.debug > 0:
-                    print('\tLabel to verify {0}'.format(labelToVerify))
+                    print(f'\tLabel to verify {labelToVerify}')
 
                 orConditions = group[labelToVerify]
-                #if args.debug > 0:
-                    #print '\t\tOr conditions group : {0}'.format(orConditions)
-
+                if args.debug > 0:
+                    print('\t\tOr conditions group : {0}'.format(orConditions))
 
                 # orConditions is an array. Each position of this array should be ORed with the next position
                 for andcondition in orConditions:
                     # If any of these andConditions groups is true, just return the label, because this for is an 'OR'
-                    #if args.debug > 0:
-                        #print '\t\tAnd condition group : {0}'.format(andcondition)
+                    if args.debug > 0:
+                        print('\t\tAnd condition group : {0}'.format(andcondition))
 
                     # With this we keep control of how each part of the and is going...
                     allTrue = True
                     for acond in andcondition:
-                        #if args.debug > 0:
-                           #print '\t\t\tAnd this with : {0}'.format(acond)
+                        if args.debug > 0:
+                           print('\t\t\tAnd this with : {0}'.format(acond))
 
                         condColumn = list(acond.keys())[0]
-                        condValue = acond[condColumn].upper()
+                        condValue = acond[condColumn].lower()
+                        condColumn = condColumn.lower()
 
-                        netflowValue = netflowDict[condColumn]
+                        netflowValue = column_values[condColumn]
                         if args.debug > 0:
-                            print('\t\tField: {0}, Condition value: {1}, Netflow value: {2}'.format(condColumn, condValue, netflowValue))
+                            print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                     
                         if condValue.find('!') != -1:
                             # This is negative condition
@@ -148,9 +137,9 @@ class labeler():
                                 break
                         elif condValue.find('!') == -1:
                             # This is positive condition
-                            if (condColumn == 'Bytes') or (condColumn == 'Packets'):
+                            if (condColumn == 'bytes') or (condColumn == 'packets'):
                                 # We should be greater than or equal to these values...
-                                if (int(condValue) <= int(netflowValue)) or (condValue == 'ALL') :
+                                if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
                                     allTrue = True
                                     if args.debug > 0:
                                         print('\t\t\tTrue')
@@ -160,7 +149,7 @@ class labeler():
                                         print('\t\t\tFalse')
                                     allTrue = False
                                     break
-                            elif (condValue == netflowValue) or (condValue == 'ALL') :
+                            elif (condValue == netflowValue) or (condValue == 'all') :
                                 allTrue = True
                                 #if args.debug > 0:
                                 #    print '\t\t\tTrue'
@@ -178,12 +167,9 @@ class labeler():
                         
             if args.verbose > 0:
                 if 'Background' in labelToReturn:
-                    # if args.verbose > 0:
-                    print('\tFinal label assigned: {0}'.format(labelToReturn))
+                    print(f'\tFinal label assigned: {labelToReturn}')
                 else:
-                    print('\tFinal label assigned: \x1b\x5b1;31;40m{0}\x1b\x5b0;0;40m'.format(labelToReturn))
-                # if args.debug > 0:
-                #    raw_input()
+                    print(f'\tFinal label assigned: \x1b\x5b1;31;40m{labelToReturn}\x1b\x5b0;0;40m')
             return labelToReturn
 
         except Exception as inst:
@@ -193,25 +179,34 @@ class labeler():
             print(inst)           # __str__ allows args to printed directly
             exit(-1)
 
-def output_netflow_line_to_file(outputfile, netflowArray):
+def output_netflow_line_to_file(outputfile, originalline, filetype='', label=''):
     """
-    Get a netflow dictionary and store it on a new file
+    Get data and store it on a new file
     """
     try:
-        #if args.debug > 0:
-        #    print 'NetFlowArray: {}'.format(netflowArray)
-        
-        if list(netflowArray[12].keys())[0] == 'Flows':
-            # nfdump
-            outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + ':' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + ':' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '   ' + str(netflowArray[12]['Flows']) + '  ' + str(netflowArray[13]['Label']) + '\n'
-        else:
-            # argus
-            outputline = str(netflowArray[0]['Date']) + ' ' + str(netflowArray[1]['start']) + '\t\t' + str(netflowArray[2]['Duration']) + ' ' + str(netflowArray[3]['Proto']) + '\t' + str(netflowArray[4]['srcIP']) + '\t' + str(netflowArray[5]['srcPort']) + '\t->' + ' ' + str(netflowArray[6]['dstIP']) + '\t' + str(netflowArray[7]['dstPort']) + '        ' + str(netflowArray[8]['Flags']) + '   ' + str(netflowArray[9]['Tos']) + '     ' + str(netflowArray[10]['Packets']) + ' ' + str(netflowArray[11]['Bytes']) + '  ' + str(netflowArray[12]['Label']) + '\n'
-        outputfile.writelines(outputline)
+        if 'csv' in filetype:
+            separator = ','
+        elif 'tab' in filetype:
+            separator = '\t'
 
+        if type(originalline) == str and label == '':
+            # It is a headerline
 
-        # write the line
-        # keep it open!
+            # Should we add the 'label' string? Zeek has many headerlines
+            if '#fields' in originalline:
+                outputline = originalline.strip() + separator + 'label' + '\n'
+                outputfile.writelines(outputline)
+            elif '#types' in originalline:
+                outputline = originalline.strip() + separator + 'string' + '\n'
+                outputfile.writelines(outputline)
+            else:
+                outputfile.writelines(originalline)
+            # We are not putting the 'label' string in the header!
+        elif type(originalline) == str and label != '':
+            # These are values to store
+            outputline = originalline.strip() + separator + label + '\n'
+            outputfile.writelines(outputline)
+            # keep it open!
 
     except Exception as inst:
         print('Problem in output_labeled_netflow_file()')
@@ -511,10 +506,10 @@ def define_columns(headerline, filetype):
     column_idx['dur'] = False
     column_idx['proto'] = False
     column_idx['appproto'] = False
-    column_idx['saddr'] = False
+    column_idx['srcip'] = False
     column_idx['sport'] = False
     column_idx['dir'] = False
-    column_idx['daddr'] = False
+    column_idx['dstip'] = False
     column_idx['dport'] = False
     column_idx['state'] = False
     column_idx['pkts'] = False
@@ -523,39 +518,120 @@ def define_columns(headerline, filetype):
     column_idx['bytes'] = False
     column_idx['sbytes'] = False
     column_idx['dbytes'] = False
+    column_idx['orig_ip_bytes'] = False
+    column_idx['resp_ip_bytes'] = False
+    column_idx['history'] = False
+    column_idx['event_type'] = False
+    column_idx['uid'] = False
+    column_idx['local_orig'] = False
+    column_idx['local_resp'] = False
+    column_idx['missed_bytes'] = False
+    column_idx['tunnel_parents'] = False
 
     try:
         if 'csv' in filetype or 'tab' in filetype:
+            # This should work for zeek-csv, zeek-tab, argus-csv, nfdump-csv
             if 'csv' in filetype:
                 separator = ','
             elif 'tab' in filetype:
                 separator = '\t'
             nline = headerline.strip().split(separator)
+            try:
+                # Remove the extra column of zeek if it is there
+                nline.remove('#fields')
+            except ValueError:
+                # ignore if #fields is not there
+                pass
+            if args.debug > 1:
+                print(f'Headers line: {nline}')
             for field in nline:
-                if 'time' in field.lower():
+                if args.debug > 1:
+                    print(f'Field: {field.lower()}, index: {nline.index(field)}')
+                if 'time' in field.lower() or field.lower() == 'ts':
                     column_idx['starttime'] = nline.index(field)
+                elif 'uid' in field.lower():
+                    column_idx['uid'] = nline.index(field)
                 elif 'dur' in field.lower():
                     column_idx['dur'] = nline.index(field)
                 elif 'proto' in field.lower():
                     column_idx['proto'] = nline.index(field)
-                elif 'srca' in field.lower():
-                    column_idx['saddr'] = nline.index(field)
-                elif 'sport' in field.lower():
+                elif 'srca' in field.lower() or 'id.orig_h' in field.lower():
+                    column_idx['srcip'] = nline.index(field)
+                elif 'sport' in field.lower() or 'id.orig_p' in field.lower():
                     column_idx['sport'] = nline.index(field)
                 elif 'dir' in field.lower():
                     column_idx['dir'] = nline.index(field)
-                elif 'dsta' in field.lower():
-                    column_idx['daddr'] = nline.index(field)
-                elif 'dport' in field.lower():
+                elif 'dsta' in field.lower() or 'id.resp_h' in field.lower():
+                    column_idx['dstip'] = nline.index(field)
+                elif 'dport' in field.lower() or 'id.resp_p' in field.lower():
                     column_idx['dport'] = nline.index(field)
                 elif 'state' in field.lower():
                     column_idx['state'] = nline.index(field)
+                elif 'srcbytes' in field.lower() or 'orig_bytes' in field.lower():
+                    column_idx['sbytes'] = nline.index(field)
+                elif 'destbytes' in field.lower() or 'resp_bytes' in field.lower():
+                    column_idx['dbytes'] = nline.index(field)
+                elif 'service' in field.lower():
+                    column_idx['appproto'] = nline.index(field)
+                elif 'srcpkts' in field.lower() or 'orig_pkts' in field.lower():
+                    column_idx['spkts'] = nline.index(field)
+                elif 'destpkts' in field.lower() or 'resp_pkts' in field.lower():
+                    column_idx['dpkts'] = nline.index(field)
                 elif 'totpkts' in field.lower():
                     column_idx['pkts'] = nline.index(field)
                 elif 'totbytes' in field.lower():
                     column_idx['bytes'] = nline.index(field)
-                elif 'srcbytes' in field.lower():
-                    column_idx['sbytes'] = nline.index(field)
+                elif 'history' in field.lower():
+                    column_idx['history'] = nline.index(field)
+                elif 'orig_ip_bytes' in field.lower():
+                    column_idx['orig_ip_bytes'] = nline.index(field)
+                elif 'resp_ip_bytes' in field.lower():
+                    column_idx['resp_ip_bytes'] = nline.index(field)
+                elif 'local_orig' in field.lower():
+                    column_idx['local_orig'] = nline.index(field)
+                elif 'local_resp' in field.lower():
+                    column_idx['local_resp'] = nline.index(field)
+                elif 'missed_bytes' in field.lower():
+                    column_idx['missed_bytes'] = nline.index(field)
+                elif 'tunnel_parents' in field.lower():
+                    column_idx['tunnel_parents'] = nline.index(field)
+                    
+        elif 'json' in filetype:
+            if 'timestamp' in headerline:
+                # Suricata json
+                column_idx['starttime'] = 'timestamp'
+                column_idx['srcip'] = 'src_ip'
+                column_idx['dur'] = False
+                column_idx['proto'] = 'proto'
+                column_idx['sport'] = 'src_port'
+                column_idx['dstip'] = 'dst_ip'
+                column_idx['dport'] = 'dest_port'
+                column_idx['spkts'] = 'flow/pkts_toserver'
+                column_idx['dpkts'] = 'flow/pkts_toclient'
+                column_idx['sbytes'] = 'flow/bytes_toserver'
+                column_idx['dbytes'] = 'flow/bytes_toclient'
+                column_idx['event_type'] = 'event_type'
+            elif 'ts' in headerline:
+                # Zeek json
+                column_idx['starttime'] = 'ts'
+                column_idx['srcip'] = 'id.orig_h'
+                column_idx['endtime'] = ''
+                column_idx['dur'] = 'duration'
+                column_idx['proto'] = 'proto'
+                column_idx['appproto'] = 'service'
+                column_idx['sport'] = 'id.orig_p'
+                column_idx['dstip'] = 'id.resp_h'
+                column_idx['dport'] = 'id.resp_p'
+                column_idx['state'] = 'conn_state'
+                column_idx['pkts'] = ''
+                column_idx['spkts'] = 'orig_pkts'
+                column_idx['dpkts'] = 'resp_pkts'
+                column_idx['bytes'] = ''
+                column_idx['sbytes'] = 'orig_bytes'
+                column_idx['dbytes'] = 'resp_bytes'
+                column_idx['orig_ip_bytes'] = 'orig_ip_bytes'
+                column_idx['resp_ip_bytes'] = 'resp_ip_bytes'
+                column_idx['history'] = 'history'
 
         # Some of the fields were not found probably,
         # so just delete them from the index if their value is False.
@@ -567,6 +643,7 @@ def define_columns(headerline, filetype):
                 continue
             temp_dict[i] = column_idx[i]
         column_idx = temp_dict
+
         return column_idx
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
@@ -638,7 +715,67 @@ def define_type(data):
         print(str(inst), 0, 1)
         sys.exit(1)
 
-def process_argus(column_idx, outputfile, filetype):
+def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
+    """
+    Process a Zeek file
+    The filetype can be: 'tab', 'csv', 'json'
+    """
+    try:
+        amount_lines_processed = 0
+        column_values = {}
+
+        # Read firstlines
+        line = input_file.readline()
+
+        # Delete headerlines
+        while '#' in line:
+            line = input_file.readline()
+        while (line):
+            # Count the first line
+            amount_lines_processed += 1
+
+            if args.verbose > 0:
+                print(f'Netflow line: {line}', end='')
+
+            if 'csv' in filetype or 'tab' in filetype:
+                # Work with csv and tabs
+                if 'csv' in filetype:
+                    separator = ','
+                elif 'tab' in filetype:
+                    separator = '\t'
+                # Transform the line into an array
+                line_values = line.split(separator)
+
+                # Read values from the flow line
+                print(column_idx)
+                for key in column_idx:
+                    column_values[key] = line_values[column_idx[key]]
+
+                # Request a label
+                label = labelmachine.getLabel(column_values)
+
+                # Store the netflow
+                output_netflow_line_to_file(output_file, line, filetype, label=label)
+
+                line = input_file.readline()
+                amount_lines_processed += 1
+
+            elif 'json' in filetype:
+                # Count the first line
+                amount_lines_processed += 1
+                pass
+
+
+
+        return amount_lines_processed
+    except Exception as inst:
+        exception_line = sys.exc_info()[2].tb_lineno
+        print(f'\tProblem in process_zeek() line {exception_line}', 0, 1)
+        print(str(type(inst)), 0, 1)
+        print(str(inst), 0, 1)
+        sys.exit(1)
+
+def process_argus(column_idx, output_file, labelmachine, filetype):
     """
     Process an Argus file
     """
@@ -716,7 +853,7 @@ def process_argus(column_idx, outputfile, filetype):
 
         # Write the column names
         columnnames = "Date Time       Dur     Proto   SrcAddr Sport   Dir     DstAddr Dport   State   sTos    TotPkts TotBytes Label\n"
-        outputfile.writelines(columnnames)
+        output_file.writelines(columnnames)
 
 
         # Read the second line to start processing
@@ -919,7 +1056,7 @@ def process_argus(column_idx, outputfile, filetype):
             #    print netflowArray
 
             # Ask to store the netflow
-            output_netflow_line_to_file(outputfile, netflowArray)
+            output_netflow_line_to_file(output_file, netflowArray)
 
             line = f.readline()
             amount_lines_processed += 1
@@ -936,11 +1073,11 @@ def process_netflow(labelmachine):
     """
     try:
         if args.verbose > 0:
-            print('Processing the flow file {0}'.format(args.netflowFile))
+            print('[+] Processing the flow file {0}'.format(args.netflowFile))
 
         # Open flows file
         try:
-            f = open(args.netflowFile,'r')
+            input_file = open(args.netflowFile,'r')
         except Exception as inst:
             print('Some problem opening the input netflow file. In process_netflow()')
             print(type(inst))     # the exception instance
@@ -949,7 +1086,7 @@ def process_netflow(labelmachine):
             exit(-1)
 
         # ---- Define the type of file
-        headerline = f.readline()
+        headerline = input_file.readline()
 
         # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date' 
         if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
@@ -958,33 +1095,51 @@ def process_netflow(labelmachine):
 
         filetype = define_type(headerline)
         if args.verbose > 0:
-            print(f'Type of flow file to label: {filetype}')
+            print(f'[+] Type of flow file to label: {filetype}')
 
         # Create the output file for all cases
-        outputfile = open(args.netflowFile+'.labeled','w+')
+        output_file = open(args.netflowFile+'.labeled','w+')
+
+        # Store the headers in the output file
+        output_netflow_line_to_file(output_file, headerline)
 
         # ---- Define the columns 
         if filetype == 'zeek-json':
             column_idx = define_columns(headerline, filetype='json')
+            amount_lines_processed = 0
         elif filetype == 'suricata-json':
             column_idx = define_columns(headerline, filetype='json')
+            amount_lines_processed = 0
         elif filetype == 'nfdump-csv':
             column_idx = define_columns(headerline, filetype='csv')
+            amount_lines_processed = 0
         elif filetype == 'argus-csv':
             column_idx = define_columns(headerline, filetype='csv')
-            amount_lines_processed = process_argus(column_idx, outputfile, filetype='csv')
+            amount_lines_processed = process_argus(column_idx, input_file, output_file, labelmachine, filetype='csv')
         elif filetype == 'argus-tab':
             column_idx = define_columns(headerline, filetype='tab')
-            amount_lines_processed = process_argus(column_idx, outputfile, filetype='tab')
+            amount_lines_processed = process_argus(column_idx, input_file, output_file, labelmachine, filetype='tab')
         elif filetype == 'zeek-tab':
             # Get all the other headers first
-            column_idx = define_columns(headerline, filetype='tab')
+            while '#types' not in headerline:
+                # Go through all the # headers, but rememeber the #fields one
+                if '#fields' in headerline:
+                    fields_headerline = headerline
+                headerline = input_file.readline()
+                # Store the rest of the zeek headers in the output file
+                output_netflow_line_to_file(output_file, headerline, filetype='tab')
+            # Get the columns indexes
+            column_idx = define_columns(fields_headerline, filetype='tab')
+            # Process the whole file
+            amount_lines_processed = process_zeek(column_idx, input_file, output_file, labelmachine, filetype='tab')
+            # Close the netflow file
+            input_file.close()
         elif filetype == 'nfdump-tab':
             column_idx = define_columns(headerline, filetype='tab')
-            amount_lines_processed = process_nfdump(headerline, labelmachine)
+            amount_lines_processed = process_nfdump(column_idx, input_file, output_file, headerline, labelmachine)
         
         # Close the outputfile
-        outputfile.close()
+        output_file.close()
 
         print('Amount of lines read: {0}'.format(amount_lines_processed))
 
