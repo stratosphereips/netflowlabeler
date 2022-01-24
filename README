@@ -1,10 +1,12 @@
-Netflowlabeler
---------------
+# Netflowlabeler
+
 Netflowlabeler is a python tool to add labels to netflow text files. 
 If you have a netflow text file and you want to add labels to it, you can add the lables and conditions to a configuration file and use this tool to assign them.
+For now it works only in Zeek conn.log files separated by TABS.
+In the future it will include Zeek with JSON and CSV, Argus with CSV and TABS, Nfdump with CSV and Suricata with JSON
 
-Configuration File
-------------------
+## Configuration File of Labels
+
 The conf file syntax is like this:
 
 Background:
@@ -24,20 +26,3 @@ All the rules below a label are ORed. You can use & to AND different rules.
 
 These are the possible fields that you can use in a configuration file to create the rules used for labeling.
 Date , start , Duration , Proto , srcIP , srcPort , dstIP , dstPort , Flags , Tos , Packets , Bytes , Flows
-
-
-The program can understand automatically the netflow files created by Argus and nfdump. 
-
-For Argus, you should create the netflow file with the ra tool with the following configuration
-(/etc/rc.conf)
-RA_PRINT_LABELS=0
-RA_FIELD_DELIMITER='\t'
-RA_USEC_PRECISION=6
-RA_PRINT_NAMES=0
-RA_TIME_FORMAT="%Y/%m/%d %T.%f"
-RA_FIELD_SPECIFIER= stime dur proto:10 saddr:27 sport dir daddr:27 dport state stos dtos pkts bytes
-
-Also you may run ra with -n so you can see the port numbers.
-
-Any column after the last netflow official column is ignored (for example, if you had a label)
-
