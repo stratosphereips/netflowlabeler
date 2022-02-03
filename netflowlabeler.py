@@ -740,6 +740,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         # Delete headerlines
         while '#' in line:
             line = input_file.readline()
+
         while (line):
             # Count the first line
             amount_lines_processed += 1
@@ -769,6 +770,8 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 output_netflow_line_to_file(output_file, line, filetype, genericlabel=genericlabel, detailedlabel=detailedlabel)
 
                 line = input_file.readline()
+                while '#' in line:
+                    line = input_file.readline()
 
             elif 'json' in filetype:
                 # Count the first line
