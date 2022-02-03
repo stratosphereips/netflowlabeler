@@ -1,28 +1,52 @@
 # Netflowlabeler
+Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
 
-Netflowlabeler is a python tool to add labels to netflow text files. 
-If you have a netflow text file and you want to add labels to it, you can add the lables and conditions to a configuration file and use this tool to assign them.
-For now it works only in Zeek conn.log files separated by TABS.
-In the future it will include Zeek with JSON and CSV, Argus with CSV and TABS, Nfdump with CSV and Suricata with JSON
+Netflowlabeler is a python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the lables and conditions to a configuration file and use this tool to assign them.
 
-## Configuration File of Labels
+You can add a generic label and a detailed label.
+
+For now it works only in Zeek conn.log files separated by TABS. In the future it will include Zeek with JSON and CSV, Argus with CSV and TABS, Nfdump with CSV and Suricata with JSON
+
+# Usage
+
+    netflowlabeler.py -c <configFile> [-v <verbose>] [-d DEBUG] -f <netflowFile> [-h]
+
+# Example Configuration File of Labels
 
 The conf file syntax is like this:
 
-Background:
-    - srcIP=all
-Normal:
-    - Proto=ARP
-    - Proto=IGMP
-Botnet-DGA:
-    - Proto=UDP & dstPort=53
-    - Proto=UDP & srcPort=53
-Botnet-CC:
-    - srcIP=10.0.0.151 & Proto=TCP
-    - dstIP=10.0.0.151 & Proto=TCP
+    Background:
+        - srcIP=all
+    # Here the generic label is Background and the detailed label is ARP
+    Background, ARP: 
+        - Proto=ARP
+    Malicious, From_Malware:
+        - srcIP=10.0.0.34
+    Malicious, From_Local_Link_IPv6:
+        - srcIP=fe80::1dfe:6c38:93c9:c808
+     Benign, FromWindows:
+       - Proto=UDP & srcIP=147.32.84.165 & dstPort=53     # (AND conditions go in one line)
+       - Proto=TCP & dstIP=1.1.1.1 & dstPort=53           # (all new lines are OR conditions)
 
-The position is the priority of the rule. First we check the first rule and if it matches then we assign that label. Then we check the second rule, etc.
-All the rules below a label are ORed. You can use & to AND different rules.
+0. The first part of the label is the generic label (Benign), after the comma is the detailed description (FromWindows). We encourage not to use : or spaces or , or TABs in the detailed description
+1. If there is no |, then the detailed label is empty. 
+2. Don't use quotes for the text.
+3. Labels are assigned from top to bottom
+4. Each new label superseeds and overwrites the previous match
+
+The position is the priority of the rule. First we check the first rule matches and if it does, then we assign that label. Then we check the second rule, etc.
 
 These are the possible fields that you can use in a configuration file to create the rules used for labeling.
-Date , start , Duration , Proto , srcIP , srcPort , dstIP , dstPort , Flags , Tos , Packets , Bytes , Flows
+- Date
+- start
+- Duration
+- Proto
+- srcIP
+- srcPort
+- dstIP
+- dstPort
+- Flags
+- Tos
+- Packets
+- Bytes
+- Flows
