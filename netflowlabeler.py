@@ -87,17 +87,24 @@ class labeler():
         Input: column_values is a dict, where each key is the standard field in a netflow
         """
         try:
-            # Default to empty label
-            labelToReturn= "(empty)"
+            # Default to empty genericlabel and detailedlabel
+            labelToReturn= ( "(empty)", "(empty)")
 
             # Process all the conditions 
             for group in self.conditionsGroup:
                 # The first key of the group is the label to put 
-                labelToVerify = list(group.keys())[0]
-                if args.debug > 0:
-                    print(f'\tLabel to verify {labelToVerify}')
+                labelline = list(group.keys())[0]
+                genericlabelToVerify = labelline.split(',')[0].strip()
+                try:
+                    detailedlabelToVerify = labelline.split(',')[1].strip()
+                except IndexError:
+                    # There is no detailedlabel
+                    detailedlabelToVerify = '(empty)'
 
-                orConditions = group[labelToVerify]
+                if args.debug > 0:
+                    print(f'\tLabel to verify {labelline}')
+
+                orConditions = group[labelline]
                 if args.debug > 0:
                     print('\t\tOr conditions group : {0}'.format(orConditions))
 
@@ -151,8 +158,8 @@ class labeler():
                                     break
                             elif (condValue == netflowValue) or (condValue == 'all') :
                                 allTrue = True
-                                #if args.debug > 0:
-                                #    print '\t\t\tTrue'
+                                if args.debug > 0:
+                                    print('\t\t\tTrue')
                                 continue
                             else:
                                 if args.debug > 0:
@@ -161,9 +168,9 @@ class labeler():
                                 break
 
                     if allTrue:
-                        labelToReturn = labelToVerify
+                        labelToReturn = (genericlabelToVerify, detailedlabelToVerify)
                         if args.debug > 0:
-                            print('\tNew label assigned: {0}'.format(labelToVerify))
+                            print('\tNew label assigned: {0}'.format(genericlabelToVerify, detailedlabelToVerify))
                         
             if args.verbose > 0:
                 if 'Background' in labelToReturn:
@@ -179,9 +186,10 @@ class labeler():
             print(inst)           # __str__ allows args to printed directly
             exit(-1)
 
-def output_netflow_line_to_file(outputfile, originalline, filetype='', label=''):
+def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
     """
     Get data and store it on a new file
+    If genericlabel is empty, it is a headler line to process
     """
     try:
         if 'csv' in filetype:
@@ -189,23 +197,25 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', label='')
         elif 'tab' in filetype:
             separator = '\t'
 
-        if type(originalline) == str and label == '':
+        if type(originalline) == str and genericlabel == '':
             # It is a headerline
 
             # Should we add the 'label' string? Zeek has many headerlines
             if '#fields' in originalline:
-                outputline = originalline.strip() + separator + 'label' + '\n'
+                outputline = originalline.strip() + separator + 'label' + separator + 'detailedlabel' + '\n'
                 outputfile.writelines(outputline)
             elif '#types' in originalline:
-                outputline = originalline.strip() + separator + 'string' + '\n'
+                outputline = originalline.strip() + separator + 'string' + separator + 'string' + '\n'
                 outputfile.writelines(outputline)
             else:
                 outputfile.writelines(originalline)
             # We are not putting the 'label' string in the header!
-        elif type(originalline) == str and label != '':
+        elif type(originalline) == str and genericlabel != '':
             # These are values to store
-            outputline = originalline.strip() + separator + label + '\n'
+            outputline = originalline.strip() + separator + genericlabel + separator + detailedlabel + '\n'
             outputfile.writelines(outputline)
+            if args.debug > 1:
+                print(f'Just outputed label {genericlabel} in line {outputline}')
             # keep it open!
 
     except Exception as inst:
@@ -476,11 +486,11 @@ def process_nfdump(f, headers, labelmachine):
 
 
         # Request a label
-        label = labelmachine.getLabel(netflowArray)
+        genericlabel, detailedlabel = labelmachine.getLabel(netflowArray)
         # Store the value in the dict
         dict = netflowArray[13]
         columnName = list(dict.keys())[0] 
-        dict[columnName] = label
+        dict[columnName] = genericlabel
         netflowArray[13] = dict
 
         #if args.debug > 0:
@@ -507,10 +517,10 @@ def define_columns(headerline, filetype):
     column_idx['proto'] = False
     column_idx['appproto'] = False
     column_idx['srcip'] = False
-    column_idx['sport'] = False
+    column_idx['srcport'] = False
     column_idx['dir'] = False
     column_idx['dstip'] = False
-    column_idx['dport'] = False
+    column_idx['dstport'] = False
     column_idx['state'] = False
     column_idx['pkts'] = False
     column_idx['spkts'] = False
@@ -545,7 +555,7 @@ def define_columns(headerline, filetype):
             if args.debug > 1:
                 print(f'Headers line: {nline}')
             for field in nline:
-                if args.debug > 1:
+                if args.debug > 2:
                     print(f'Field: {field.lower()}, index: {nline.index(field)}')
                 if 'time' in field.lower() or field.lower() == 'ts':
                     column_idx['starttime'] = nline.index(field)
@@ -557,14 +567,14 @@ def define_columns(headerline, filetype):
                     column_idx['proto'] = nline.index(field)
                 elif 'srca' in field.lower() or 'id.orig_h' in field.lower():
                     column_idx['srcip'] = nline.index(field)
-                elif 'sport' in field.lower() or 'id.orig_p' in field.lower():
-                    column_idx['sport'] = nline.index(field)
+                elif 'srcport' in field.lower() or 'id.orig_p' in field.lower():
+                    column_idx['srcport'] = nline.index(field)
                 elif 'dir' in field.lower():
                     column_idx['dir'] = nline.index(field)
                 elif 'dsta' in field.lower() or 'id.resp_h' in field.lower():
                     column_idx['dstip'] = nline.index(field)
-                elif 'dport' in field.lower() or 'id.resp_p' in field.lower():
-                    column_idx['dport'] = nline.index(field)
+                elif 'dstport' in field.lower() or 'id.resp_p' in field.lower():
+                    column_idx['dstport'] = nline.index(field)
                 elif 'state' in field.lower():
                     column_idx['state'] = nline.index(field)
                 elif 'srcbytes' in field.lower() or 'orig_bytes' in field.lower():
@@ -603,9 +613,9 @@ def define_columns(headerline, filetype):
                 column_idx['srcip'] = 'src_ip'
                 column_idx['dur'] = False
                 column_idx['proto'] = 'proto'
-                column_idx['sport'] = 'src_port'
+                column_idx['srcport'] = 'src_port'
                 column_idx['dstip'] = 'dst_ip'
-                column_idx['dport'] = 'dest_port'
+                column_idx['dstport'] = 'dest_port'
                 column_idx['spkts'] = 'flow/pkts_toserver'
                 column_idx['dpkts'] = 'flow/pkts_toclient'
                 column_idx['sbytes'] = 'flow/bytes_toserver'
@@ -619,9 +629,9 @@ def define_columns(headerline, filetype):
                 column_idx['dur'] = 'duration'
                 column_idx['proto'] = 'proto'
                 column_idx['appproto'] = 'service'
-                column_idx['sport'] = 'id.orig_p'
+                column_idx['srcport'] = 'id.orig_p'
                 column_idx['dstip'] = 'id.resp_h'
-                column_idx['dport'] = 'id.resp_p'
+                column_idx['dstport'] = 'id.resp_p'
                 column_idx['state'] = 'conn_state'
                 column_idx['pkts'] = ''
                 column_idx['spkts'] = 'orig_pkts'
@@ -751,10 +761,12 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                     column_values[key] = line_values[column_idx[key]]
 
                 # Request a label
-                label = labelmachine.getLabel(column_values)
+                genericlabel, detailedlabel = labelmachine.getLabel(column_values)
+                if args.debug > 1:
+                    print(f'Label {genericlabel} assigned in line {line}')
 
                 # Store the netflow
-                output_netflow_line_to_file(output_file, line, filetype, label=label)
+                output_netflow_line_to_file(output_file, line, filetype, genericlabel=genericlabel, detailedlabel=detailedlabel)
 
                 line = input_file.readline()
 
@@ -985,11 +997,11 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 netflowArray[11] = dict
 
                 # Request a label
-                label = labelmachine.getLabel(netflowArray)
+                genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
                 columnName = list(dict.keys())[0] 
-                dict[columnName] = label
+                dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
             elif 'ARP' in protocol:
                 Tos = '0'
@@ -1014,11 +1026,11 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 netflowArray[11] = dict
 
                 # Request a label
-                label = labelmachine.getLabel(netflowArray)
+                genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
                 columnName = list(dict.keys())[0] 
-                dict[columnName] = label
+                dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
             else:
                 Tos = columnValues[9]
@@ -1043,11 +1055,11 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 netflowArray[11] = dict
 
                 # Request a label
-                label = labelmachine.getLabel(netflowArray)
+                genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
                 columnName = list(dict.keys())[0] 
-                dict[columnName] = label
+                dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
 
             #if args.debug > 0:
@@ -1191,8 +1203,8 @@ def loadConditions(labelmachine):
                     if line.strip()[0] == '-':
                         # Condition
                         tempAndConditions = line.strip().split('-')[1]
-                        #if args.debug > 0:
-                        #    print 'Condition: {}'.format(tempAndConditions)
+                        if args.debug > 1:
+                            print('Condition: {}'.format(tempAndConditions))
                         andConditions = []
                         for andCond in tempAndConditions.split('&'):
                             tempdict = {}
@@ -1212,10 +1224,11 @@ def loadConditions(labelmachine):
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
     except Exception as inst:
-        print('Problem in main() function at configurationParser.py ')
+        print('Problem in main() function at loadConditions ')
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
+        sys.exit(-1)
         return False
 
 if __name__ == '__main__':
