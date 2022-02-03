@@ -88,7 +88,7 @@ class labeler():
         """
         try:
             # Default to empty label
-            labelToReturn= ""
+            labelToReturn= "(empty)"
 
             # Process all the conditions 
             for group in self.conditionsGroup:
@@ -747,7 +747,6 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 line_values = line.split(separator)
 
                 # Read values from the flow line
-                print(column_idx)
                 for key in column_idx:
                     column_values[key] = line_values[column_idx[key]]
 
@@ -758,7 +757,6 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 output_netflow_line_to_file(output_file, line, filetype, label=label)
 
                 line = input_file.readline()
-                amount_lines_processed += 1
 
             elif 'json' in filetype:
                 # Count the first line
