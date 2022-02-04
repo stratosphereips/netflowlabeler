@@ -1,7 +1,7 @@
 # Netflowlabeler
 Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
 
-Netflowlabeler is a python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the lables and conditions to a configuration file and use this tool to assign them.
+Netflowlabeler is a Python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the labels and conditions to a configuration file and use this tool to assign them.
 
 You can add a generic label and a detailed label.
 
