@@ -1,4 +1,6 @@
 # Netflowlabeler
+[![Docker Image CI](https://github.com/stratosphereips/netflowlabeler/actions/workflows/docker-image.yml/badge.svg)](https://github.com/stratosphereips/netflowlabeler/actions/workflows/docker-image.yml)
+
 Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
 
 Netflowlabeler is a Python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the labels and conditions to a configuration file and use this tool to assign them.
@@ -50,3 +52,7 @@ These are the possible fields that you can use in a configuration file to create
 - Packets
 - Bytes
 - Flows
+
+# Docker Image
+
+Netflow labeler has a public docker image with the latest version. 
