@@ -36,6 +36,8 @@ The conf file syntax is like this:
         - srcIP=10.0.0.34
     Malicious-More, From_Other_Malware:
         - srcIP!=10.0.0.34 & dstPort=23
+    Malicious-HEre, From_This_Malware:
+        - srcIP=10.0.0.34 & State=SF
     Malicious, From_Local_Link_IPv6:
         - srcIP=fe80::1dfe:6c38:93c9:c808
     Benign, FromWindows:
@@ -60,7 +62,7 @@ These are the possible fields that you can use in a configuration file to create
 - srcPort
 - dstIP
 - dstPort
-- Flags
+- State
 - Tos
 - Packets
 - Bytes
