@@ -25,7 +25,7 @@ jobs:
         docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/netflowlabeler:latest
     - name: Docker Push
       run: |
-        docker push --tag ${{secrets.DOCKER_USER}}/netflowlabeler:latest
+        docker push ${{secrets.DOCKER_USER}}/netflowlabeler:latest
 
     - name: Webhook to Slack
       uses: 8398a7/action-slack@v3
