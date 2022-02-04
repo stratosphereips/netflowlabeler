@@ -123,15 +123,15 @@ class labeler():
                         condColumn = list(acond.keys())[0]
                         condValue = acond[condColumn].lower()
                         condColumn = condColumn.lower()
+                        
+                        #if condValue.find('!') != -1:
+                        if condColumn.find('!') != -1:
+                            condColumn = condColumn.replace('!','')
+                            netflowValue = column_values[condColumn]
+                            if args.debug > 0:
+                                print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
 
-                        netflowValue = column_values[condColumn]
-                        if args.debug > 0:
-                            print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
-                    
-                        if condValue.find('!') != -1:
                             # This is negative condition
-                            temp = condValue.split('!')[1]
-                            condValue = temp
                             if (condValue != netflowValue) or (condValue == 'ALL') :
                                 allTrue = True
                                 if args.debug > 0:
@@ -142,7 +142,11 @@ class labeler():
                                     print('\t\t\tFalse (negative)')
                                 allTrue = False
                                 break
-                        elif condValue.find('!') == -1:
+                        #elif condValue.find('!') == -1:
+                        elif condColumn.find('!') == -1:
+                            netflowValue = column_values[condColumn]
+                            if args.debug > 0:
+                                print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                             # This is positive condition
                             if (condColumn == 'bytes') or (condColumn == 'packets'):
                                 # We should be greater than or equal to these values...
