@@ -11,6 +11,13 @@ For now it works only in Zeek conn.log files separated by TABS. In the future it
 
     netflowlabeler.py -c <configFile> [-v <verbose>] [-d DEBUG] -f <netflowFile> [-h]
 
+# Features
+
+- You can have AND and OR conditions
+- You can have generic labels and detailed labels
+- You can use negative conditions
+- You can add comments in any place
+
 # Example Configuration File of Labels
 
 The conf file syntax is like this:
@@ -22,11 +29,13 @@ The conf file syntax is like this:
         - Proto=ARP
     Malicious, From_Malware:
         - srcIP=10.0.0.34
+    Malicious-More, From_Other_Malware:
+        - srcIP!=10.0.0.34 & dstPort=23
     Malicious, From_Local_Link_IPv6:
         - srcIP=fe80::1dfe:6c38:93c9:c808
-     Benign, FromWindows:
-       - Proto=UDP & srcIP=147.32.84.165 & dstPort=53     # (AND conditions go in one line)
-       - Proto=TCP & dstIP=1.1.1.1 & dstPort=53           # (all new lines are OR conditions)
+    Benign, FromWindows:
+        - Proto=UDP & srcIP=147.32.84.165 & dstPort=53     # (AND conditions go in one line)
+        - Proto=TCP & dstIP=1.1.1.1 & dstPort=53           # (all new lines are OR conditions)
 
 0. The first part of the label is the generic label (Benign), after the comma is the detailed description (FromWindows). We encourage not to use : or spaces or , or TABs in the detailed description
 1. If there is no |, then the detailed label is empty. 
@@ -37,6 +46,7 @@ The conf file syntax is like this:
 The position is the priority of the rule. First we check the first rule matches and if it does, then we assign that label. Then we check the second rule, etc.
 
 These are the possible fields that you can use in a configuration file to create the rules used for labeling.
+
 - Date
 - start
 - Duration
