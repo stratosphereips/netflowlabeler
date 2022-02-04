@@ -1,5 +1,8 @@
 # Netflowlabeler
 [![Docker Image CI](https://github.com/stratosphereips/netflowlabeler/actions/workflows/docker-image.yml/badge.svg)](https://github.com/stratosphereips/netflowlabeler/actions/workflows/docker-image.yml)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/stratosphereips/netflowlabeler/main)
+![Docker Pulls](https://img.shields.io/docker/pulls/stratosphereips/netflowlabeler?color=green)
+
 
 Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
 
