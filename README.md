@@ -59,3 +59,9 @@ These are the possible fields that you can use in a configuration file to create
 # Docker Image
 
 Netflow labeler has a public docker image with the latest version. 
+
+    docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest /bin/bash
+
+Or label directly with:
+
+    docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
