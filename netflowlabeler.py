@@ -1188,13 +1188,13 @@ def loadConditions(labelmachine):
             print('Loading the conditions from the configuration file ')                    
 
         # Read the conf file
-        line = conf.readline()
+        line = conf.readline().strip()
         conditions = {}
 
         while (line):
             # Ignore comments
             if line.strip().find('#') == 0:
-                line = conf.readline()
+                line = conf.readline().strip()
                 continue
 
             # Read a label
@@ -1205,7 +1205,7 @@ def loadConditions(labelmachine):
                 conditions[label]=[]
 
                 # Now read all the conditions for this label
-                line = conf.readline()
+                line = conf.readline().strip()
                 while (line):
                     if line.strip()[0] == '-':
                         # Condition
@@ -1220,7 +1220,7 @@ def loadConditions(labelmachine):
 
                         conditions[label].append(andConditions)
 
-                        line = conf.readline()
+                        line = conf.readline().strip()
                     else:
                         break
             labelmachine.addCondition(conditions) 
