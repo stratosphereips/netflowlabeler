@@ -124,15 +124,14 @@ class labeler():
                         condValue = acond[condColumn].lower()
                         condColumn = condColumn.lower()
                         
-                        #if condValue.find('!') != -1:
                         if condColumn.find('!') != -1:
+                            # Negation condition
                             condColumn = condColumn.replace('!','')
                             netflowValue = column_values[condColumn]
                             if args.debug > 0:
                                 print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
 
-                            # This is negative condition
-                            if (condValue != netflowValue) or (condValue == 'ALL') :
+                            if (condValue != netflowValue) or (condValue == 'all') :
                                 allTrue = True
                                 if args.debug > 0:
                                     print('\t\t\tTrue (negative)')
@@ -142,34 +141,111 @@ class labeler():
                                     print('\t\t\tFalse (negative)')
                                 allTrue = False
                                 break
-                        #elif condValue.find('!') == -1:
                         elif condColumn.find('!') == -1:
-                            netflowValue = column_values[condColumn]
-                            if args.debug > 0:
-                                print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
-                            # This is positive condition
-                            if (condColumn == 'bytes') or (condColumn == 'packets'):
-                                # We should be greater than or equal to these values...
-                                if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
+                            # Normal condition, no negation
+
+                            # Is the column a number?
+                            if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in  condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                                # It is a colum that we can treat as a number
+                                # Find if there is <, > or = in the condition
+                                if '>' in condColumn[-1]:
+                                    condColumn = condColumn[:-1]
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    # Pay attention to directionality of condition 'condValue < flowvalue'
+                                    if (int(condValue) < int(netflowValue)) or (condValue == 'all') :
+                                        allTrue = True
+                                        if args.debug > 0:
+                                            print('\t\t\tTrue')
+                                        continue
+                                    else:
+                                        if args.debug > 0:
+                                            print('\t\t\tFalse')
+                                        allTrue = False
+                                        break
+                                elif '<'  in condColumn[-1]:
+                                    condColumn = condColumn[:-1]
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    # Pay attention to directionality of condition 'condValue > flowvalue'
+                                    if (int(condValue) > int(netflowValue)) or (condValue == 'all') :
+                                        allTrue = True
+                                        if args.debug > 0:
+                                            print('\t\t\tTrue')
+                                        continue
+                                    else:
+                                        if args.debug > 0:
+                                            print('\t\t\tFalse')
+                                        allTrue = False
+                                        break
+                                elif '<='  in condColumn[-2]:
+                                    condColumn = condColumn[:-2]
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    # Pay attention to directionality of condition 'condValue >= flowvalue'
+                                    if (int(condValue) >= int(netflowValue)) or (condValue == 'all') :
+                                        allTrue = True
+                                        if args.debug > 0:
+                                            print('\t\t\tTrue')
+                                        continue
+                                    else:
+                                        if args.debug > 0:
+                                            print('\t\t\tFalse')
+                                        allTrue = False
+                                        break
+                                elif '>='  in condColumn[-2]:
+                                    condColumn = condColumn[:-2]
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    # Pay attention to directionality of condition 'condValue <= flowvalue'
+                                    if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
+                                        allTrue = True
+                                        if args.debug > 0:
+                                            print('\t\t\tTrue')
+                                        continue
+                                    else:
+                                        if args.debug > 0:
+                                            print('\t\t\tFalse')
+                                        allTrue = False
+                                        break
+                                else:
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    if (int(condValue) == int(netflowValue)) or (condValue == 'all') :
+                                        allTrue = True
+                                        if args.debug > 0:
+                                            print('\t\t\tTrue')
+                                        continue
+                                    else:
+                                        if args.debug > 0:
+                                            print('\t\t\tFalse')
+                                        allTrue = False
+                                        break
+
+                            else:
+                                # It is not a colum that we can treat as a number
+                                netflowValue = column_values[condColumn]
+                                if (condValue == netflowValue) or (condValue == 'all') :
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     allTrue = True
                                     if args.debug > 0:
                                         print('\t\t\tTrue')
                                     continue
                                 else:
+                                    netflowValue = column_values[condColumn]
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     if args.debug > 0:
                                         print('\t\t\tFalse')
                                     allTrue = False
                                     break
-                            elif (condValue == netflowValue) or (condValue == 'all') :
-                                allTrue = True
-                                if args.debug > 0:
-                                    print('\t\t\tTrue')
-                                continue
-                            else:
-                                if args.debug > 0:
-                                    print('\t\t\tFalse')
-                                allTrue = False
-                                break
 
                     if allTrue:
                         labelToReturn = (genericlabelToVerify, detailedlabelToVerify)
@@ -232,6 +308,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
 
 def process_nfdump(f, headers, labelmachine):
     """
+    DEPRECATED!! NEEDS UPDATE COMPLETELY
     Process and label an nfdump file
     """
     # Just to monitor how many lines we read
@@ -609,7 +686,6 @@ def define_columns(headerline, filetype):
                     column_idx['missed_bytes'] = nline.index(field)
                 elif 'tunnel_parents' in field.lower():
                     column_idx['tunnel_parents'] = nline.index(field)
-                    
         elif 'json' in filetype:
             if 'timestamp' in headerline:
                 # Suricata json
@@ -765,6 +841,51 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 for key in column_idx:
                     column_values[key] = line_values[column_idx[key]]
 
+                # Create the hand-made columns that are a sum of other columns
+                # First empty them
+                column_values['bytes'] = ''
+                column_values['pkts'] = ''
+                column_values['ipbytes'] = ''
+
+                # Sum bytes
+                # We do it like this because sometimes the column can be - or 0
+                if column_values['sbytes'] == '-':
+                    sbytes = 0
+                else:
+                    sbytes = int(column_values['sbytes'])
+                if column_values['dbytes'] == '-':
+                    dbytes = 0
+                else:
+                    dbytes = int(column_values['dbytes'])
+                column_values['bytes'] = str(sbytes + dbytes)
+                #print(f'New column bytes = {column_values["bytes"]}')
+
+                # Sum packets
+                # We do it like this because sometimes the column can be - or 0
+                if column_values['spkts'] == '-':
+                    spkts = 0
+                else:
+                    spkts = int(column_values['spkts'])
+                if column_values['dpkts'] == '-':
+                    dpkts = 0
+                else:
+                    dpkts = int(column_values['dpkts'])
+                column_values['pkts'] = str(spkts + dpkts)
+                #print(f'New column pkst = {column_values["pkts"]}')
+
+                # Sum ip_bytes
+                # We do it like this because sometimes the column can be - or 0
+                if column_values['orig_ip_bytes'] == '-':
+                    sip_bytes = 0
+                else:
+                    sip_bytes = int(column_values['orig_ip_bytes'])
+                if column_values['resp_ip_bytes'] == '-':
+                    dip_bytes = 0
+                else:
+                    dip_bytes = int(column_values['resp_ip_bytes'])
+                column_values['ipbytes'] = str(sip_bytes + dip_bytes)
+                #print(f'New column ipbytes = {column_values["ipbytes"]}')
+
                 # Request a label
                 genericlabel, detailedlabel = labelmachine.getLabel(column_values)
                 if args.debug > 1:
@@ -794,6 +915,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
 
 def process_argus(column_idx, output_file, labelmachine, filetype):
     """
+    DEPRECATED!! NEEDS UPDATE COMPLETELY
     Process an Argus file
     """
     try:
