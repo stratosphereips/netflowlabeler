@@ -21,6 +21,7 @@ For now it works only in Zeek conn.log files separated by TABS. In the future it
 - You can have AND and OR conditions
 - You can have generic labels and detailed labels
 - You can use negative conditions
+- All columns that can be intepreted as numbers can be compared with <, >, <= and >=
 - You can add comments in any place
 
 # Example Configuration File of Labels
@@ -40,6 +41,12 @@ The conf file syntax is like this:
         - srcIP=10.0.0.34 & State=SF
     Malicious, From_Local_Link_IPv6:
         - srcIP=fe80::1dfe:6c38:93c9:c808
+    Test-State:
+        - srcIP=10.0.0.34 & State=S0
+    Test-largebytes:
+       - Bytes>=100
+    Test-smallbytes:
+       - Bytes<=100
     Benign, FromWindows:
         - Proto=UDP & srcIP=147.32.84.165 & dstPort=53     # (AND conditions go in one line)
         - Proto=TCP & dstIP=1.1.1.1 & dstPort=53           # (all new lines are OR conditions)
@@ -51,6 +58,7 @@ The conf file syntax is like this:
 4. Each new label superseeds and overwrites the previous match
 
 The position is the priority of the rule. First we check the first rule matches and if it does, then we assign that label. Then we check the second rule, etc.
+
 
 These are the possible fields that you can use in a configuration file to create the rules used for labeling.
 
@@ -67,6 +75,8 @@ These are the possible fields that you can use in a configuration file to create
 - Packets
 - Bytes
 - Flows
+
+The fields 'Bytes', 'Packets' and 'IPBytes' are computed in Zeek from the fields for the src and dst values. For example, Bytes=srcbytes + dstbytes
 
 # Docker Image
 
