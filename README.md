@@ -21,7 +21,7 @@ For now it works only in Zeek conn.log files separated by TABS. In the future it
 - You can have AND and OR conditions
 - You can have generic labels and detailed labels
 - You can use negative conditions
-- All columns that can be intepreted as numbers can be compared with <, >, <= and >=
+- All columns that can be interpreted as numbers can be compared with <, >, <= and >=
 - You can add comments in any place
 
 # Example Configuration File of Labels
