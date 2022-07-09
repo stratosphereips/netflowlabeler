@@ -231,7 +231,10 @@ class labeler():
                             # Is the column related to an IP and the value has a / for the CIDR?
                             elif ('ip' in condColumn) and ('/' in condValue):
                                 netflowValue = column_values[condColumn]
-                                temp_net = ipaddress.IPv4Network(condValue)
+                                if ':' in condValue:
+                                    temp_net = ipaddress.IPv6Network(condValue)
+                                else:
+                                    temp_net = ipaddress.IPv4Network(condValue)
                                 temp_ip = ipaddress.ip_address(netflowValue)
                                 if temp_ip in temp_net:
                                     if args.debug > 0:
