@@ -64,7 +64,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
             outputline = originalline.strip() + separator + genericlabel + separator + detailedlabel + '\n'
             outputfile.writelines(outputline)
             if args.debug > 1:
-                print(f'Just outputed label {genericlabel} in line {outputline}')
+                print(f'Just outputed label {genericlabel} {detailedlabel} in line {outputline}')
             # keep it open!
 
     except Exception as inst:
@@ -105,6 +105,8 @@ def define_columns(headerline, filetype):
     column_idx['local_resp'] = False
     column_idx['missed_bytes'] = False
     column_idx['tunnel_parents'] = False
+    column_idx['label'] = False
+    column_idx['detailedlabel'] = False
 
     try:
         if 'csv' in filetype or 'tab' in filetype:
@@ -127,7 +129,7 @@ def define_columns(headerline, filetype):
                     print(f'Field: {field.lower()}, index: {nline.index(field)}')
                 if 'time' in field.lower() or field.lower() == 'ts':
                     column_idx['starttime'] = nline.index(field)
-                elif 'uid' in field.lower():
+                elif field.lower() == 'uid':
                     column_idx['uid'] = nline.index(field)
                 elif 'dur' in field.lower():
                     column_idx['dur'] = nline.index(field)
@@ -173,6 +175,10 @@ def define_columns(headerline, filetype):
                     column_idx['missed_bytes'] = nline.index(field)
                 elif 'tunnel_parents' in field.lower():
                     column_idx['tunnel_parents'] = nline.index(field)
+                elif 'detailedlabel' in field.lower():
+                    column_idx['detailedlabel'] = nline.index(field)
+                elif 'label' in field.lower():
+                    column_idx['label'] = nline.index(field)
         elif 'json' in filetype:
             if 'timestamp' in headerline:
                 # Suricata json
@@ -391,8 +397,6 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 amount_lines_processed += 1
                 pass
 
-
-
         return amount_lines_processed
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
@@ -402,19 +406,19 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         sys.exit(1)
 
 
-def process_zeekfolder():
+def cache_labeled_file():
     """
-    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
+    Read the labeled file and store the uid and labels in a dictionary
     """
     try:
         if args.verbose > 0:
-            print('[+] Processing the zeek folder {0}'.format(args.zeekfolder))
+            print(f'[+] Labeled file to use: {args.labeledfile}')
 
         # Open labeled flows file and get the columns
         try:
             input_labeled_file = open(args.labeledfile,'r')
         except Exception as inst:
-            print('Some problem opening the input labeled netflow file. In process_netflow()')
+            print('Some problem opening the input labeled netflow file. In cache_labeled_file()')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
@@ -430,12 +434,13 @@ def process_zeekfolder():
 
         # Define the type of file
         filetype = define_type(headerline)
-        if args.verbose > 0:
-            print(f'[+] Type of labeled file to label: {filetype}')
+
+        if args.verbose > 3:
+            print(f'[+] Type of labeled file to use: {filetype}')
 
         # Define the columns 
         if filetype == 'zeek-json':
-            column_idx = define_columns(headerline, filetype='json')
+            input_labeled_file_column_idx = define_columns(headerline, filetype='json')
             amount_lines_processed = 0
         elif filetype == 'zeek-tab':
             # Get all the other headers first
@@ -449,17 +454,69 @@ def process_zeekfolder():
             # Set the fields separator
             input_labeled_file_separator = '\t'
 
+        # Read and Cache the labeled file
+        labels_dict = {}
+
+        inputline = input_labeled_file.readline()
+        lines_with_labels_read = 0
+        while inputline and not '#' in inputline:
+            # Transform the line into an array
+            line_values = inputline.split(input_labeled_file_separator)
+            if args.debug > 8:
+                print(f"[+] Line values: {line_values}")
+            # Read column values from the flow line
+            try:
+                uid = line_values[input_labeled_file_column_idx['uid']]
+                generic_label = line_values[input_labeled_file_column_idx['label']].strip()
+                detailed_label = line_values[input_labeled_file_column_idx['detailedlabel']].strip()
+                # Store the labels for this uid in the dict
+                labels_dict[uid] = [generic_label, detailed_label]
+                lines_with_labels_read += 1
+                if args.debug > 6:
+                    print(f"[+] UID: {uid}. Label: {generic_label}. Detailed label: {detailed_label}")
+            except IndexError:
+                # Some zeek log files can have the headers only and no data.
+                # Because we create them sometimes from larger zeek files that were filtered
+                continue
+            inputline = input_labeled_file.readline()
+
+        if args.verbose > 1:
+            print(f"[+] Finished reading labeled file. Read {lines_with_labels_read} lines with labels.\n")
+        return labels_dict
+
+    except Exception as inst:
+        exception_line = sys.exc_info()[2].tb_lineno
+        print(f'\tProblem in cache_labeled_file() line {exception_line}', 0, 1)
+        print(str(type(inst)), 0, 1)
+        print(str(inst), 0, 1)
+        sys.exit(1)
 
 
-        # ----- Work with zeek files in the folder
+def process_zeekfolder():
+    """
+    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
+    Method: 
+    1. Read the labeled file once and store the uid and labels in a dictionary
+    2. Read each of the files in the zeek folder, read their uid, and assign the label given to that uid in the labeled file
+    """
+    try:
+        # Get and load the dict with uid and labels
+        labels_dict = cache_labeled_file()
 
+        if args.verbose > 0:
+            print('[+] Processing the zeek folder {0} for files to label'.format(args.zeekfolder))
+
+
+        # ----- Second, open each file in the folder, and label them. 
         # Get the list of files in this folder
         zeekfiles = [f for f in listdir(args.zeekfolder) if isfile(join(args.zeekfolder, f))]
 
+        lines_labeled = 0
+
         for zeekfile_name in zeekfiles:
 
-            # Ignore labeled files, summary fle and conn.log file
-            if '.labeled' in zeekfile_name or 'summary' in zeekfile_name or 'conn.log' in zeekfile_name:
+            # Ignore labeled files, summary file and conn.log file
+            if '.labeled' in zeekfile_name or 'services' in zeekfile_name or 'summary' in zeekfile_name or 'conn.log' in zeekfile_name:
                 continue
 
             # Ignore empty files
@@ -488,7 +545,7 @@ def process_zeekfolder():
 
             # ---- Define the type of file
             filetype = define_type(headerline)
-            if args.verbose > 0:
+            if args.verbose > 3:
                 print(f'[+] Type of flow file to label: {filetype}')
 
             # Create the output file for all cases
@@ -514,24 +571,47 @@ def process_zeekfolder():
                     output_netflow_line_to_file(output_file, headerline, filetype='tab')
                 # Get the columns indexes
                 column_idx = define_columns(fields_headerline, filetype='tab')
+                zeek_file_file_separator = '\t'
 
-            # ---- Read the lines from the labeled file
+            # ---- Read the lines from the file to label
 
             # Read each line of the labeled file and get the zeek uid
-            inputline = input_labeled_file.readline()
-            while not '#' in inputline:
-                inputline = input_labeled_file.readline()
 
+            line_to_label = zeekfile.readline().strip()
+
+            while line_to_label and not '#' in line_to_label[0]:
                 # Transform the line into an array
-                line_values = inputline.split(input_labeled_file_separator)
-                # Read column values from the flow line
-                labeled_uid = line_values[input_labeled_file_column_idx['uid']]
+                line_values = line_to_label.split(zeek_file_file_separator)
+                if args.debug > 5:
+                    print(f"[+] Line values: {line_values}")
+                # Read column values from the zeek line
+                try:
+                    uid = line_values[column_idx['uid']]
+                    lines_labeled += 1
+                    
+                    try:
+                        generic_label_to_assign = labels_dict[uid][0]
+                        detailed_label_to_assign = labels_dict[uid][1]
+                    except KeyError:
+                        # There is no label for this uid!
+                        if args.debug > 2:
+                            print(f"There is no label for this uid: {uid}")
+
+                    if args.debug > 3:
+                        print(f"[+] To label UID: {uid}. Label: {generic_label_to_assign}. Detailed label: {detailed_label_to_assign}")
+                    # Store the rest of the zeek line in the output file
+                    output_netflow_line_to_file(output_file, line_to_label, filetype='tab', genericlabel=generic_label_to_assign, detailedlabel=detailed_label_to_assign)
+                except (IndexError, KeyError):
+                    # Some zeek log files can have the headers only and no data.
+                    # Because we create them sometimes from larger zeek files that were filtered
+                    pass
+                line_to_label = zeekfile.readline().strip()
 
 
-            #amount_lines_processed = process_zeek(column_idx, zeekfile, output_file, filetype='tab')
+        if args.verbose > 0:
+            print(f"[+] Read all labeled files. Labeled {lines_labeled} lines in total.")
 
         # Close the input file
-        input_labeled_file.close()
         zeekfile.close()
         # Close the outputfile
         output_file.close()
