@@ -6,7 +6,7 @@ type: software
 authors:
   - given-names: Sebastian
     family-names: Garcia
-    email: garciseb@fel.cvut.cz
+    email: sebastian.garcia@agents.fel.cvut.cz
     affiliation: >-
       Stratosphere Laboratory, AIC, FEL, Czech
       Technical University in Prague
