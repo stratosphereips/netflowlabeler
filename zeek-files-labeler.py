@@ -64,7 +64,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
             outputline = originalline.strip() + separator + genericlabel + separator + detailedlabel + '\n'
             outputfile.writelines(outputline)
             if args.debug > 1:
-                print(f'Just outputed label {genericlabel} {detailedlabel} in line {outputline}')
+                print(f' [+] Wrote line: {outputline}')
             # keep it open!
 
     except Exception as inst:
@@ -504,7 +504,7 @@ def process_zeekfolder():
         labels_dict = cache_labeled_file()
 
         if args.verbose > 0:
-            print('[+] Processing the zeek folder {0} for files to label'.format(args.zeekfolder))
+            print('\n[+] Processing the zeek folder {0} for files to label'.format(args.zeekfolder))
 
 
         # ----- Second, open each file in the folder, and label them. 
@@ -512,6 +512,7 @@ def process_zeekfolder():
         zeekfiles = [f for f in listdir(args.zeekfolder) if isfile(join(args.zeekfolder, f))]
 
         lines_labeled = 0
+        uid_without_label = 0
 
         for zeekfile_name in zeekfiles:
 
@@ -556,7 +557,7 @@ def process_zeekfolder():
             # Store the first header line in the output file
             output_netflow_line_to_file(output_file, headerline)
 
-            # ---- Define the columns 
+            # ---- Define the columns of this file
             if filetype == 'zeek-json':
                 column_idx = define_columns(headerline, filetype='json')
                 amount_lines_processed = 0
@@ -584,17 +585,22 @@ def process_zeekfolder():
                 line_values = line_to_label.split(zeek_file_file_separator)
                 if args.debug > 5:
                     print(f"[+] Line values: {line_values}")
+
                 # Read column values from the zeek line
                 try:
                     uid = line_values[column_idx['uid']]
                     lines_labeled += 1
                     
                     try:
+                        # Get the labels
                         generic_label_to_assign = labels_dict[uid][0]
                         detailed_label_to_assign = labels_dict[uid][1]
                     except KeyError:
                         # There is no label for this uid!
-                        if args.debug > 2:
+                        generic_label_to_assign = '(empty)'
+                        detailed_label_to_assign = '(empty)'
+                        uid_without_label += 1
+                        if args.debug > 1:
                             print(f"There is no label for this uid: {uid}")
 
                     if args.debug > 3:
@@ -609,7 +615,7 @@ def process_zeekfolder():
 
 
         if args.verbose > 0:
-            print(f"[+] Read all labeled files. Labeled {lines_labeled} lines in total.")
+            print(f"[+] Read all labeled files. Labeled {lines_labeled} lines in total. UID without label {uid_without_label}")
 
         # Close the input file
         zeekfile.close()
