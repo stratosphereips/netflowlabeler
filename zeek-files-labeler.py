@@ -678,6 +678,12 @@ def process_zeekfolder():
                         pass
                     line_to_label = zeekfile.readline().strip()
 
+            # Store the last header back
+            if line_to_label and '#' in headerline[0]:
+                # Store the rest of the zeek headers in the output file
+                output_netflow_line_to_file(output_file, line_to_label, filetype='tab')
+
+
 
         if args.verbose > 0:
             print(f"[+] Read all labeled files. Labeled {lines_labeled} lines in total. UID without label {uid_without_label}")
