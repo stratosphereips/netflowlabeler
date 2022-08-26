@@ -31,6 +31,7 @@ import argparse
 import os
 from os import listdir
 from os.path import isfile, join
+import subprocess
 
 version = "0.1"
 
@@ -101,12 +102,14 @@ def define_columns(headerline, filetype):
     column_idx['history'] = False
     column_idx['event_type'] = False
     column_idx['uid'] = False
+    column_idx['conn_uids'] = False
     column_idx['local_orig'] = False
     column_idx['local_resp'] = False
     column_idx['missed_bytes'] = False
     column_idx['tunnel_parents'] = False
     column_idx['label'] = False
     column_idx['detailedlabel'] = False
+    column_idx['fingerprint'] = False
 
     try:
         if 'csv' in filetype or 'tab' in filetype:
@@ -131,6 +134,8 @@ def define_columns(headerline, filetype):
                     column_idx['starttime'] = nline.index(field)
                 elif field.lower() == 'uid':
                     column_idx['uid'] = nline.index(field)
+                elif 'conn_uids' in field.lower():
+                    column_idx['conn_uids'] = nline.index(field)
                 elif 'dur' in field.lower():
                     column_idx['dur'] = nline.index(field)
                 elif 'proto' in field.lower():
@@ -179,6 +184,8 @@ def define_columns(headerline, filetype):
                     column_idx['detailedlabel'] = nline.index(field)
                 elif 'label' in field.lower():
                     column_idx['label'] = nline.index(field)
+                elif 'fingerprint' in field.lower():
+                    column_idx['fingerprint'] = nline.index(field)
         elif 'json' in filetype:
             if 'timestamp' in headerline:
                 # Suricata json
@@ -197,6 +204,7 @@ def define_columns(headerline, filetype):
             elif 'ts' in headerline:
                 # Zeek json
                 column_idx['starttime'] = 'ts'
+                column_idx['conn_uids'] = 'conn_uids'
                 column_idx['srcip'] = 'id.orig_h'
                 column_idx['endtime'] = ''
                 column_idx['dur'] = 'duration'
@@ -215,6 +223,7 @@ def define_columns(headerline, filetype):
                 column_idx['orig_ip_bytes'] = 'orig_ip_bytes'
                 column_idx['resp_ip_bytes'] = 'resp_ip_bytes'
                 column_idx['history'] = 'history'
+                column_idx['fingerprint'] = 'fingerprint'
 
         # Some of the fields were not found probably,
         # so just delete them from the index if their value is False.
@@ -562,7 +571,7 @@ def process_zeekfolder():
                 column_idx = define_columns(headerline, filetype='json')
                 amount_lines_processed = 0
             elif filetype == 'zeek-tab':
-                # Get all the other headers first
+                # ---- Get all the headers lines and store them in the output file
                 while '#types' not in headerline:
                     # Go through all the # headers, but rememeber the #fields one
                     if '#fields' in headerline:
@@ -570,48 +579,104 @@ def process_zeekfolder():
                     headerline = zeekfile.readline()
                     # Store the rest of the zeek headers in the output file
                     output_netflow_line_to_file(output_file, headerline, filetype='tab')
-                # Get the columns indexes
+                # ---- Get the columns indexes for each colum
                 column_idx = define_columns(fields_headerline, filetype='tab')
                 zeek_file_file_separator = '\t'
 
-            # ---- Read the lines from the file to label
+            # ---- For the majority of zeek log files, using the UID from conn.log to find the related flow is ok
+            # ---- But it is not for x509.log and files.log. 
 
-            # Read each line of the labeled file and get the zeek uid
-
-            line_to_label = zeekfile.readline().strip()
-
-            while line_to_label and not '#' in line_to_label[0]:
-                # Transform the line into an array
-                line_values = line_to_label.split(zeek_file_file_separator)
-                if args.debug > 5:
-                    print(f"[+] Line values: {line_values}")
-
-                # Read column values from the zeek line
-                try:
-                    uid = line_values[column_idx['uid']]
-                    lines_labeled += 1
-                    
-                    try:
-                        # Get the labels
-                        generic_label_to_assign = labels_dict[uid][0]
-                        detailed_label_to_assign = labels_dict[uid][1]
-                    except KeyError:
-                        # There is no label for this uid!
-                        generic_label_to_assign = '(empty)'
-                        detailed_label_to_assign = '(empty)'
-                        uid_without_label += 1
-                        if args.debug > 1:
-                            print(f"There is no label for this uid: {uid}")
-
-                    if args.debug > 3:
-                        print(f"[+] To label UID: {uid}. Label: {generic_label_to_assign}. Detailed label: {detailed_label_to_assign}")
-                    # Store the rest of the zeek line in the output file
-                    output_netflow_line_to_file(output_file, line_to_label, filetype='tab', genericlabel=generic_label_to_assign, detailedlabel=detailed_label_to_assign)
-                except (IndexError, KeyError):
-                    # Some zeek log files can have the headers only and no data.
-                    # Because we create them sometimes from larger zeek files that were filtered
-                    pass
+            if zeekfile_name == 'x509.log':
                 line_to_label = zeekfile.readline().strip()
+                while line_to_label and not '#' in line_to_label[0]:
+                    # Transform the line into an array
+                    line_values = line_to_label.split(zeek_file_file_separator)
+                    if args.debug > 5:
+                        print(f"[+] line values: {line_values}")
+
+                    # Read column values from the line to label
+                    try:
+                        fingerprint = line_values[column_idx['fingerprint']]
+                        if args.debug > 5:
+                            print(f"[+] got the fingerprint: {fingerprint}")
+
+                        #if args.verbose > 5:
+                            #print(f"[+] Greping {fingerprint} in file {join(args.zeekfolder, zeekfile_name)}")
+                        command = 'grep ' + fingerprint + ' ' + join(args.zeekfolder, 'ssl.log')
+                        result = subprocess.run(command.split(), stdout=subprocess.PIPE)
+                        result = result.stdout.decode('utf-8')
+                        #if args.verbose > 5:
+                            #print(f"\t[+] Result {result}")
+
+                        # Using this fingerprint find the uid of the ssl line
+                        uid = result.split('\t')[1]
+
+                        # Using this uid, find the label for the conn.log line
+                        try:
+                            # Get the labels
+                            generic_label_to_assign = labels_dict[uid][0]
+                            detailed_label_to_assign = labels_dict[uid][1]
+                        except KeyError:
+                            # There is no label for this uid!
+                            generic_label_to_assign = '(empty)'
+                            detailed_label_to_assign = '(empty)'
+                            uid_without_label += 1
+                            if args.debug > 1:
+                                print(f"There is no label for this uid: {uid}")
+
+                        if args.debug > 3:
+                            print(f"[+] To label UID: {uid}. Label: {generic_label_to_assign}. Detailed label: {detailed_label_to_assign}")
+                        # Store the rest of the zeek line in the output file
+                        output_netflow_line_to_file(output_file, line_to_label, filetype='tab', genericlabel=generic_label_to_assign, detailedlabel=detailed_label_to_assign)
+                        lines_labeled += 1
+                    except (IndexError, KeyError):
+                        # Some zeek log files can have the headers only and no data.
+                        # Because we create them sometimes from larger zeek files that were filtered
+                        pass
+                    line_to_label = zeekfile.readline().strip()
+
+            else:
+                # ---- Read the lines from the rest of log files to label
+                
+                # Read each line of the labeled file and get the zeek uid
+                line_to_label = zeekfile.readline().strip()
+
+                while line_to_label and not '#' in line_to_label[0]:
+                    # Transform the line into an array
+                    line_values = line_to_label.split(zeek_file_file_separator)
+                    if args.debug > 5:
+                        print(f"[+] Line values: {line_values}")
+
+                    # Read column values from the zeek line
+                    try:
+                        if zeekfile_name != 'files.log':
+                            uid = line_values[column_idx['uid']]
+                        elif zeekfile_name == 'files.log':
+                            uid = line_values[column_idx['conn_uids']]
+
+                        lines_labeled += 1
+                        
+                        try:
+                            # Get the labels
+                            generic_label_to_assign = labels_dict[uid][0]
+                            detailed_label_to_assign = labels_dict[uid][1]
+                        except KeyError:
+                            # There is no label for this uid!
+                            generic_label_to_assign = '(empty)'
+                            detailed_label_to_assign = '(empty)'
+                            uid_without_label += 1
+                            if args.debug > 1:
+                                print(f"There is no label for this uid: {uid}")
+
+                        if args.debug > 3:
+                            print(f"[+] To label UID: {uid}. Label: {generic_label_to_assign}. Detailed label: {detailed_label_to_assign}")
+                        # Store the rest of the zeek line in the output file
+                        output_netflow_line_to_file(output_file, line_to_label, filetype='tab', genericlabel=generic_label_to_assign, detailedlabel=detailed_label_to_assign)
+                    except (IndexError, KeyError):
+                        # Some zeek log files can have the headers only and no data.
+                        # Because we create them sometimes from larger zeek files that were filtered
+                        pass
+                    line_to_label = zeekfile.readline().strip()
 
 
         if args.verbose > 0:
