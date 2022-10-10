@@ -91,8 +91,18 @@ The fields 'Bytes', 'Packets' and 'IPBytes' are computed in Zeek from the fields
 
 Netflow labeler has a public docker image with the latest version. 
 
-    docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest /bin/bash
+To test the labeler is working correctly, run the following command. The command will run the netflow labeler tool on a Zeek example conn.log file and then cat the labeled file to the standard output. You should see the fresh labels in the output (e.g.: search for the string 'Test-smallbytes').
 
-Or label directly with:
+```bash
+docker run --tty -it stratosphereips/netflowlabeler:latest /bin/bash -c 'python3 netflowlabeler.py -c labels.config  -f examples/conn.tab.log ; cat examples/conn.tab.log.labeled'
+```
 
-    docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
+To mount your logs path to the container and run the netflow labeler interactively:
+```bash
+docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest /bin/bash
+```
+
+To mount your logs path to the container and automatically run the netflow labeler on it with your own labels.config file:
+```bash
+docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
+```
