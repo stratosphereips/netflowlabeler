@@ -404,7 +404,7 @@ def process_nfdump(f, headers, labelmachine):
     # Read the second line to start processing
     line = f.readline()
     amount_lines_processed += 1
-    while (line):
+    while line:
         if args.verbose > 0:
             print('Netflow line: {0}'.format(line), end=' ')
 
@@ -841,7 +841,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         while '#' in line:
             line = input_file.readline()
 
-        while (line):
+        while line:
             # Count the first line
             amount_lines_processed += 1
 
@@ -1016,7 +1016,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         # Read the second line to start processing
         line = f.readline()
         amount_lines_processed += 1
-        while (line):
+        while line:
             if args.verbose > 0:
                 print('Netflow line: {0}'.format(line), end=' ')
 
@@ -1328,7 +1328,7 @@ def loadConditions(labelmachine):
         line = conf.readline().strip()
         conditions = {}
 
-        while (line):
+        while line:
             # Ignore comments
             if line.strip().find('#') == 0:
                 line = conf.readline().strip()
@@ -1343,7 +1343,7 @@ def loadConditions(labelmachine):
 
                 # Now read all the conditions for this label
                 line = conf.readline().strip()
-                while (line):
+                while line:
                     if line.strip()[0] == '-':
                         # Condition
                         tempAndConditions = line.strip().split('-')[1]
