@@ -1389,8 +1389,9 @@ def loadConditions(labelmachine):
 
 
 if __name__ == '__main__':
-    print(f'NetFlow labeler. Version {version}')
-    print('https://stratosphereips.org')
+    print(f'NetFlow Labeler v{version}')
+    print('Stratosphere Research Laboratory (https://stratosphereips.org)')
+    print()
 
     # Parse the parameters
     parser = argparse.ArgumentParser(description="Tool to label netflow files", add_help=False)
