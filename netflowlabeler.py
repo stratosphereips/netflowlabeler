@@ -76,7 +76,7 @@ class labeler():
             self.conditionsGroup.append(condition)
 
             if args.debug > 0:
-                print('\tCondition added: {0}'.format(condition))
+                print(f'\tCondition added: {condition}')
 
         except Exception as inst:
             print('Problem in addCondition() in class labeler')
@@ -110,7 +110,7 @@ class labeler():
 
                 orConditions = group[labelline]
                 if args.debug > 0:
-                    print('\t\tOr conditions group : {0}'.format(orConditions))
+                    print(f'\t\tOr conditions group : {orConditions}')
 
                 # orConditions is an array.
                 # Each position of this array should be ORed with the next position
@@ -118,13 +118,13 @@ class labeler():
                     # If any of these andConditions groups is true,
                     # just return the label, because this for is an 'OR'
                     if args.debug > 0:
-                        print('\t\tAnd condition group : {0}'.format(andcondition))
+                        print(f'\t\tAnd condition group : {andcondition}')
 
                     # With this we keep control of how each part of the and is going...
                     allTrue = True
                     for acond in andcondition:
                         if args.debug > 0:
-                            print('\t\t\tAnd this with : {0}'.format(acond))
+                            print(f'\t\t\tAnd this with : {acond}')
 
                         condColumn = list(acond.keys())[0]
                         condValue = acond[condColumn].lower()
@@ -360,7 +360,7 @@ def process_nfdump(f, headers, labelmachine):
     addressType = ''
 
     # if args.debug > 0:
-    #    print 'Columns names: {0}'.format(columnNames)
+    #    print(f'Columns names: {columnNames}')
 
     for cN in columnNames:
         # Separate between src ip and dst ip
@@ -401,8 +401,8 @@ def process_nfdump(f, headers, labelmachine):
     columnDict = {}
 
     # if args.debug > 0:
-    #    print 'netflowArray'
-    #    print netflowArray
+    #    print('netflowArray')
+    #    print(netflowArray)
 
     # Create the output file with the header
     outputfile = open(args.netflowFile+'.labeled', 'w+')
@@ -416,7 +416,7 @@ def process_nfdump(f, headers, labelmachine):
     amount_lines_processed += 1
     while line:
         if args.verbose > 0:
-            print('Netflow line: {0}'.format(line), end=' ')
+            print(f'Netflow line: {line}', end=' ')
 
         # Parse the columns
         # Strip and replace ugly stuff
@@ -593,8 +593,8 @@ def process_nfdump(f, headers, labelmachine):
         netflowArray[13] = dict
 
         # if args.debug > 0:
-        #    print date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows
-        #    print netflowArray
+        #    print(date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows)
+        #    print(netflowArray)
 
         # Request a label
         genericlabel, detailedlabel = labelmachine.getLabel(netflowArray)
@@ -606,7 +606,7 @@ def process_nfdump(f, headers, labelmachine):
         netflowArray[13] = dict
 
         # if args.debug > 0:
-        #    print netflowArray
+        #    print(netflowArray)
 
         # Ask to store the netflow
         output_netflow_line_to_file(outputfile, netflowArray)
@@ -966,7 +966,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnNames = temp.split(' ')
 
         # if args.debug > 0:
-        #    print 'Columns names: {0}'.format(columnNames)
+        #    print(f'Columns names: {columnNames}')
 
         # So far argus does no have a column Date
         columnDict['Date'] = ""
@@ -1030,7 +1030,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         amount_lines_processed += 1
         while line:
             if args.verbose > 0:
-                print('Netflow line: {0}'.format(line), end=' ')
+                print(f'Netflow line: {line}', end=' ')
 
             # Parse the columns
             # Strip and replace ugly stuff
@@ -1039,7 +1039,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
             columnValues = temp.split(' ')
 
             # if args.debug > 0:
-            #    print columnValues
+            #    print(columnValues)
 
             # Date
             date = columnValues[0]
@@ -1218,7 +1218,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 netflowArray[12] = dict
 
             # if args.debug > 0:
-            #    print netflowArray
+            #    print(netflowArray)
 
             # Ask to store the netflow
             output_netflow_line_to_file(output_file, netflowArray)
@@ -1239,7 +1239,7 @@ def process_netflow(labelmachine):
     """
     try:
         if args.verbose > 0:
-            print('[+] Processing the flow file {0}'.format(args.netflowFile))
+            print(f'[+] Processing the flow file {args.netflowFile}')
 
         # Open flows file
         try:
@@ -1307,7 +1307,7 @@ def process_netflow(labelmachine):
         # Close the outputfile
         output_file.close()
 
-        print('Amount of lines read: {0}'.format(amount_lines_processed))
+        print(f'Amount of lines read: {amount_lines_processed}')
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
@@ -1327,10 +1327,10 @@ def loadConditions(labelmachine):
         conf = open(args.configFile)
         # try:
         #    if args.verbose > 0:
-        #        print('Opening the configuration file \'{0}\''.format(args.configFile))
+        #        print(f'Opening the configuration file \'{args.configFile}\'')
         #    conf = open(args.configFile)
         # except:
-        #    print('The file \'{0}\' couldn\'t be opened.'.format(args.configFile))
+        #    print(f'The file \'{args.configFile}\' couldn\'t be opened.')
         #    exit(1)
 
         if args.debug > 0:
@@ -1350,7 +1350,7 @@ def loadConditions(labelmachine):
             if line.strip()[0] != '-':
                 label = line.split(':')[0]
                 # if args.debug > 0:
-                #    print 'Label: {}'.format(label)
+                #    print(f'Label: {label}')
                 conditions[label] = []
 
                 # Now read all the conditions for this label
@@ -1360,7 +1360,7 @@ def loadConditions(labelmachine):
                         # Condition
                         tempAndConditions = line.strip().split('-')[1]
                         if args.debug > 1:
-                            print('Condition: {}'.format(tempAndConditions))
+                            print(f'Condition: {tempAndConditions}')
                         andConditions = []
                         for andCond in tempAndConditions.split('&'):
                             tempdict = {}
@@ -1389,7 +1389,7 @@ def loadConditions(labelmachine):
 
 
 if __name__ == '__main__':
-    print('NetFlow labeler. Version {}'.format(version))
+    print(f'NetFlow labeler. Version {version}')
     print('https://stratosphereips.org')
 
     # Parse the parameters
