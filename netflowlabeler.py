@@ -165,7 +165,7 @@ class labeler():
                                             print('\t\t\tFalse')
                                         allTrue = False
                                         break
-                                elif '<'  in condColumn[-1]:
+                                elif '<' in condColumn[-1]:
                                     condColumn = condColumn[:-1]
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
@@ -181,7 +181,7 @@ class labeler():
                                             print('\t\t\tFalse')
                                         allTrue = False
                                         break
-                                elif '<='  in condColumn[-2]:
+                                elif '<=' in condColumn[-2]:
                                     condColumn = condColumn[:-2]
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
@@ -197,7 +197,7 @@ class labeler():
                                             print('\t\t\tFalse')
                                         allTrue = False
                                         break
-                                elif '>='  in condColumn[-2]:
+                                elif '>=' in condColumn[-2]:
                                     condColumn = condColumn[:-2]
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
