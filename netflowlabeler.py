@@ -88,7 +88,7 @@ class labeler():
         """
         try:
             # Default to empty genericlabel and detailedlabel
-            labelToReturn= ("(empty)", "(empty)")
+            labelToReturn = ("(empty)", "(empty)")
 
             # Process all the conditions
             for group in self.conditionsGroup:
@@ -1340,7 +1340,7 @@ def loadConditions(labelmachine):
                 label = line.split(':')[0]
                 # if args.debug > 0:
                 #    print 'Label: {}'.format(label)
-                conditions[label]=[]
+                conditions[label] = []
 
                 # Now read all the conditions for this label
                 line = conf.readline().strip()
