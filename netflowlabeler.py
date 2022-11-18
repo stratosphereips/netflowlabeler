@@ -78,7 +78,7 @@ class labeler():
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
+            sys.exit(-1)
 
     def getLabel(self, column_values):
         """
@@ -285,7 +285,7 @@ class labeler():
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
+            sys.exit(-1)
 
 
 def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
@@ -325,7 +325,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
 def process_nfdump(f, headers, labelmachine):
@@ -1237,7 +1237,7 @@ def process_netflow(labelmachine):
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
+            sys.exit(-1)
 
         # ---- Define the type of file
         headerline = input_file.readline()
