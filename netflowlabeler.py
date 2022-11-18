@@ -1376,6 +1376,7 @@ def loadConditions(labelmachine):
         sys.exit(-1)
         return False
 
+
 if __name__ == '__main__':
     print('NetFlow labeler. Version {}'.format(version))
     print('https://stratosphereips.org')
