@@ -271,7 +271,7 @@ class labeler():
                     if allTrue:
                         labelToReturn = (genericlabelToVerify, detailedlabelToVerify)
                         if args.debug > 0:
-                            print('\tNew label assigned: {0}'.format(genericlabelToVerify, detailedlabelToVerify))
+                            print(f'\tNew label assigned: {genericlabelToVerify} {detailedlabelToVerify}')
 
             if args.verbose > 0:
                 if 'Background' in labelToReturn:
