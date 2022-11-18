@@ -81,7 +81,6 @@ class labeler():
             print(inst)           # __str__ allows args to printed directly
             exit(-1)
 
-
     def getLabel(self, column_values):
         """
         Get the values of the columns of a netflow line and return a label
@@ -402,7 +401,6 @@ def process_nfdump(f, headers, labelmachine):
     columnnames = "Date flow start Duration        Proto   Src IP Addr:Port        Dst IP Addr:Port        Flags   Tos     Packets Bytes   Flows  Label\n"
     outputfile.writelines(columnnames)
 
-
     # Read the second line to start processing
     line = f.readline()
     amount_lines_processed += 1
@@ -587,9 +585,9 @@ def process_nfdump(f, headers, labelmachine):
         #    print date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows
         #    print netflowArray
 
-
         # Request a label
         genericlabel, detailedlabel = labelmachine.getLabel(netflowArray)
+
         # Store the value in the dict
         dict = netflowArray[13]
         columnName = list(dict.keys())[0]
@@ -601,7 +599,6 @@ def process_nfdump(f, headers, labelmachine):
 
         # Ask to store the netflow
         output_netflow_line_to_file(outputfile, netflowArray)
-
 
         line = f.readline()
         amount_lines_processed += 1
@@ -925,8 +922,6 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 amount_lines_processed += 1
                 pass
 
-
-
         return amount_lines_processed
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
@@ -1016,7 +1011,6 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnnames = "Date Time       Dur     Proto   SrcAddr Sport   Dir     DstAddr Dport   State   sTos    TotPkts TotBytes Label\n"
         output_file.writelines(columnnames)
 
-
         # Read the second line to start processing
         line = f.readline()
         amount_lines_processed += 1
@@ -1084,14 +1078,12 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 dict[columnName] = srcPort
                 netflowArray[5] = dict
 
-
             dstIP = columnValues[6]
             # Store the value in the dict
             dict = netflowArray[6]
             columnName = list(dict.keys())[0]
             dict[columnName] = dstIP
             netflowArray[6] = dict
-
 
             if 'ARP' in protocol:
                 dstPort = '0'
