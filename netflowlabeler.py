@@ -40,26 +40,26 @@ class labeler():
     """
     conditionsGroup = []
     """
-    conditionsGroup = [ 
-            {'Background': [ 
-                [ {'srcIP': 'all'} ] 
-                ] }, 
-            {'Normal': [ 
+    conditionsGroup = [
+            {'Background': [
+                [ {'srcIP': 'all'} ]
+                ] },
+            {'Normal': [
                 [ {'Proto':'IGMP'} ],
                 [ {'Proto':'ARP'} ]
-                ] }, 
+                ] },
             {'Botnet-CC': [
-                [ {'srcIP': '10.0.0.151'} ], 
+                [ {'srcIP': '10.0.0.151'} ],
                 [ {'dstIP': '10.0.0.151'} ]
-                ] }, 
+                ] },
             {'Botnet-SPAM': [
-                [ {'Proto': 'TCP'}, {'srcPort': '25'} ], 
+                [ {'Proto': 'TCP'}, {'srcPort': '25'} ],
                 [ {'Proto': 'TCP'}, {'dstPort': '25'} ]
-                ] }, 
-            {'Botnet-DGA': [ 
+                ] },
+            {'Botnet-DGA': [
                 [ {'Proto':'UDP'}, {'srcPort':'53'} ] ,
-                [ {'Proto':'UDP'}, {'dstPort':'53'} ] 
-                ] } 
+                [ {'Proto':'UDP'}, {'dstPort':'53'} ]
+                ] }
                       ]
     """
 
@@ -91,9 +91,9 @@ class labeler():
             # Default to empty genericlabel and detailedlabel
             labelToReturn= ( "(empty)", "(empty)")
 
-            # Process all the conditions 
+            # Process all the conditions
             for group in self.conditionsGroup:
-                # The first key of the group is the label to put 
+                # The first key of the group is the label to put
                 labelline = list(group.keys())[0]
                 genericlabelToVerify = labelline.split(',')[0].strip()
                 try:
@@ -124,7 +124,7 @@ class labeler():
                         condColumn = list(acond.keys())[0]
                         condValue = acond[condColumn].lower()
                         condColumn = condColumn.lower()
-                        
+
                         if condColumn.find('!') != -1:
                             # Negation condition
                             condColumn = condColumn.replace('!','')
@@ -274,7 +274,7 @@ class labeler():
                         labelToReturn = (genericlabelToVerify, detailedlabelToVerify)
                         if args.debug > 0:
                             print('\tNew label assigned: {0}'.format(genericlabelToVerify, detailedlabelToVerify))
-                        
+
             if args.verbose > 0:
                 if 'Background' in labelToReturn:
                     print(f'\tFinal label assigned: {labelToReturn}')
@@ -397,7 +397,7 @@ def process_nfdump(f, headers, labelmachine):
 
     # Create the output file with the header
     outputfile = open(args.netflowFile+'.labeled','w+')
-    
+
     # Write the column names
     columnnames = "Date flow start Duration        Proto   Src IP Addr:Port        Dst IP Addr:Port        Flags   Tos     Packets Bytes   Flows  Label\n"
     outputfile.writelines(columnnames)
@@ -420,33 +420,32 @@ def process_nfdump(f, headers, labelmachine):
         date = columnValues[0]
         # Store the value in the dict
         dict = netflowArray[0]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = date
         netflowArray[0] = dict
 
         hour = columnValues[1]
         # Store the value in the dict
         dict = netflowArray[1]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = hour
         netflowArray[1] = dict
 
         duration = columnValues[2]
         # Store the value in the dict
         dict = netflowArray[2]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = duration
         netflowArray[2] = dict
 
         protocol = columnValues[3].upper()
         # Store the value in the dict
         dict = netflowArray[3]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         #columnName = 'Proto'
         dict[columnName] = protocol
         netflowArray[3] = dict
 
-        
         if 'TCP' in protocol or 'UDP' in protocol or 'RTP' in protocol:
             temp = columnValues[4]
             if len(temp.split(':')) <= 2:
@@ -454,14 +453,14 @@ def process_nfdump(f, headers, labelmachine):
                 srcip = temp.split(':')[0]
                 # Store the value in the dict
                 dict = netflowArray[4]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcip
                 netflowArray[4] = dict
 
                 srcport = temp.split(':')[1]
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcport
                 netflowArray[5] = dict
 
@@ -469,14 +468,14 @@ def process_nfdump(f, headers, labelmachine):
                 dstip = temp2.split(':')[0]
                 # Store the value in the dict
                 dict = netflowArray[6]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstip
                 netflowArray[6] = dict
 
                 dstport = temp2.split(':')[1]
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstport
                 netflowArray[7] = dict
             elif len(temp.split(':')) > 2:
@@ -484,14 +483,14 @@ def process_nfdump(f, headers, labelmachine):
                 srcip = temp[0:temp.rfind(':')]
                 # Store the value in the dict
                 dict = netflowArray[4]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcip
                 netflowArray[4] = dict
 
                 srcport = temp[temp.rfind(':')+1:]
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcport
                 netflowArray[5] = dict
 
@@ -499,18 +498,18 @@ def process_nfdump(f, headers, labelmachine):
                 dstip = temp2[0:temp2.rfind(':')]
                 # Store the value in the dict
                 dict = netflowArray[6]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstip
                 netflowArray[6] = dict
 
                 dstport = temp2[temp2.rfind(':')+1:]
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstport
                 netflowArray[7] = dict
             else:
-                print() 
+                print()
                 print('Please implement this protocol!')
                 print(line)
                 sys.exit(-1)
@@ -518,69 +517,69 @@ def process_nfdump(f, headers, labelmachine):
             srcip = temp = columnValues[4]
             # Store the value in the dict
             dict = netflowArray[4]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = srcip
             netflowArray[4] = dict
 
             srcport = '0'
             # Store the value in the dict
             dict = netflowArray[5]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = srcport
             netflowArray[5] = dict
 
             dstip = temp = columnValues[5]
             # Store the value in the dict
             dict = netflowArray[6]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = dstip
             netflowArray[6] = dict
 
             dstport = '0'
             # Store the value in the dict
             dict = netflowArray[7]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = dstport
             netflowArray[7] = dict
 
         flags = columnValues[6].upper()
         # Store the value in the dict
         dict = netflowArray[8]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = flags
         netflowArray[8] = dict
 
         tos = columnValues[7]
         # Store the value in the dict
         dict = netflowArray[9]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = tos
         netflowArray[9] = dict
 
         packets = columnValues[8]
         # Store the value in the dict
         dict = netflowArray[10]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = packets
         netflowArray[10] = dict
 
         bytes = columnValues[9]
         # Store the value in the dict
         dict = netflowArray[11]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = bytes
         netflowArray[11] = dict
 
         flows = columnValues[10]
         # Store the value in the dict
         dict = netflowArray[12]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = flows
         netflowArray[12] = dict
 
         # Empty the label in the dict
         dict = netflowArray[13]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = ""
         netflowArray[13] = dict
 
@@ -593,7 +592,7 @@ def process_nfdump(f, headers, labelmachine):
         genericlabel, detailedlabel = labelmachine.getLabel(netflowArray)
         # Store the value in the dict
         dict = netflowArray[13]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = genericlabel
         netflowArray[13] = dict
 
@@ -775,8 +774,8 @@ def define_type(data):
     """
     try:
         # If line json, it can be Zeek or suricata
-        # If line CSV, it can be Argus 
-        # If line TSV, it can be Argus  or zeek
+        # If line CSV, it can be Argus
+        # If line TSV, it can be Argus or zeek
 
         input_type = 'unknown'
 
@@ -968,7 +967,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnDict['start'] = ""
         netflowArray.append(columnDict)
         columnDict = {}
-        
+
         columnDict['Duration'] = ""
         netflowArray.append(columnDict)
         columnDict = {}
@@ -1038,74 +1037,74 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
             date = columnValues[0]
             # Store the value in the dict
             dict = netflowArray[0]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = date
             netflowArray[0] = dict
 
             hour = columnValues[1]
             # Store the value in the dict
             dict = netflowArray[1]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = hour
             netflowArray[1] = dict
 
             duration = columnValues[2]
             # Store the value in the dict
             dict = netflowArray[2]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = duration
             netflowArray[2] = dict
 
             protocol = columnValues[3].upper()
             # Store the value in the dict
             dict = netflowArray[3]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = protocol
             netflowArray[3] = dict
 
             srcIP = columnValues[4]
             # Store the value in the dict
             dict = netflowArray[4]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = srcIP
             netflowArray[4] = dict
 
             if 'ARP' in protocol:
-                srcPort = '0'   
+                srcPort = '0'
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcPort
                 netflowArray[5] = dict
             else:
                 srcPort = columnValues[5]
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcPort
                 netflowArray[5] = dict
 
 
-            dstIP = columnValues[6] 
+            dstIP = columnValues[6]
             # Store the value in the dict
             dict = netflowArray[6]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = dstIP
             netflowArray[6] = dict
 
 
             if 'ARP' in protocol:
-                dstPort = '0'   
+                dstPort = '0'
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstPort
                 netflowArray[7] = dict
 
                 Flags = columnValues[8]
                 # Store the value in the dict
                 dict = netflowArray[8]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Flags
                 netflowArray[8] = dict
 
@@ -1113,38 +1112,36 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 dstPort = columnValues[7]
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstPort
                 netflowArray[7] = dict
 
                 Flags = columnValues[8]
                 # Store the value in the dict
                 dict = netflowArray[8]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Flags
                 netflowArray[8] = dict
-
-
 
             if 'LLC' in protocol:
                 Tos = '0'
                 # Store the value in the dict
                 dict = netflowArray[9]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Tos
                 netflowArray[9] = dict
 
                 Packets = columnValues[9]
                 # Store the value in the dict
                 dict = netflowArray[10]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Packets
                 netflowArray[10] = dict
 
                 Bytes = columnValues[10]
                 # Store the value in the dict
                 dict = netflowArray[11]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Bytes
                 netflowArray[11] = dict
 
@@ -1152,28 +1149,28 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
             elif 'ARP' in protocol:
                 Tos = '0'
                 # Store the value in the dict
                 dict = netflowArray[9]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Tos
                 netflowArray[9] = dict
 
                 Packets = columnValues[8]
                 # Store the value in the dict
                 dict = netflowArray[10]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Packets
                 netflowArray[10] = dict
 
                 Bytes = columnValues[9]
                 # Store the value in the dict
                 dict = netflowArray[11]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Bytes
                 netflowArray[11] = dict
 
@@ -1181,28 +1178,28 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
             else:
                 Tos = columnValues[9]
                 # Store the value in the dict
                 dict = netflowArray[9]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Tos
                 netflowArray[9] = dict
 
                 Packets = columnValues[10]
                 # Store the value in the dict
                 dict = netflowArray[10]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Packets
                 netflowArray[10] = dict
 
                 Bytes = columnValues[11]
                 # Store the value in the dict
                 dict = netflowArray[11]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Bytes
                 netflowArray[11] = dict
 
@@ -1210,7 +1207,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
 
@@ -1250,7 +1247,7 @@ def process_netflow(labelmachine):
         # ---- Define the type of file
         headerline = input_file.readline()
 
-        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date' 
+        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date'
         if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
             print('The file has not headers. Please add them.')
             sys.exit(-1)
@@ -1265,7 +1262,7 @@ def process_netflow(labelmachine):
         # Store the headers in the output file
         output_netflow_line_to_file(output_file, headerline)
 
-        # ---- Define the columns 
+        # ---- Define the columns
         if filetype == 'zeek-json':
             column_idx = define_columns(headerline, filetype='json')
             amount_lines_processed = 0
@@ -1299,7 +1296,7 @@ def process_netflow(labelmachine):
         elif filetype == 'nfdump-tab':
             column_idx = define_columns(headerline, filetype='tab')
             amount_lines_processed = process_nfdump(column_idx, input_file, output_file, headerline, labelmachine)
-        
+
         # Close the outputfile
         output_file.close()
 
@@ -1330,7 +1327,7 @@ def loadConditions(labelmachine):
         #    exit(1)
 
         if args.debug > 0:
-            print('Loading the conditions from the configuration file ')                    
+            print('Loading the conditions from the configuration file ')
 
         # Read the conf file
         line = conf.readline().strip()
@@ -1368,7 +1365,7 @@ def loadConditions(labelmachine):
                         line = conf.readline().strip()
                     else:
                         break
-            labelmachine.addCondition(conditions) 
+            labelmachine.addCondition(conditions)
             conditions = {}
 
     except KeyboardInterrupt:
@@ -1409,5 +1406,3 @@ if __name__ == '__main__':
         # CTRL-C pretty handling.
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
-
-
