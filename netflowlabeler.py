@@ -17,7 +17,7 @@
 #
 #
 # Authors:
-# Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, sgarcia@exa.unicen.edu.ar, eldraco@gmail.com
+# Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
 # Veronica Valeros, vero.valeros@gmail.com
 # Stratosphere Laboratory, Czech Technical University in Prague
 
