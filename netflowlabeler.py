@@ -63,7 +63,7 @@ class labeler():
                       ]
     """
 
-    def addCondition(self,condition):
+    def addCondition(self, condition):
         """
         Add a condition.
         Input: condition is a string?
@@ -127,7 +127,7 @@ class labeler():
 
                         if condColumn.find('!') != -1:
                             # Negation condition
-                            condColumn = condColumn.replace('!','')
+                            condColumn = condColumn.replace('!', '')
                             netflowValue = column_values[condColumn]
                             if args.debug > 0:
                                 print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
@@ -343,8 +343,8 @@ def process_nfdump(f, headers, labelmachine):
     columnDict = {}
 
     # Replace the TABs for spaces, if it has them..., and replace the : in the ports to spaces also, and strip the \n, and the word flow
-    temp2 = headers.replace('flow','')
-    temp = re.sub( '\s+', ' ', temp2 ).replace(':',' ').strip()
+    temp2 = headers.replace('flow', '')
+    temp = re.sub( '\s+', ' ', temp2 ).replace(':', ' ').strip()
     columnNames = temp.split(' ')
 
     # Only to separate src ip from dst ip
@@ -396,7 +396,7 @@ def process_nfdump(f, headers, labelmachine):
         #print netflowArray
 
     # Create the output file with the header
-    outputfile = open(args.netflowFile+'.labeled','w+')
+    outputfile = open(args.netflowFile+'.labeled', 'w+')
 
     # Write the column names
     columnnames = "Date flow start Duration        Proto   Src IP Addr:Port        Dst IP Addr:Port        Flags   Tos     Packets Bytes   Flows  Label\n"
@@ -412,7 +412,7 @@ def process_nfdump(f, headers, labelmachine):
 
         # Parse the columns
         # Strip and replace ugly stuff
-        temp2 = line.replace('->','')
+        temp2 = line.replace('->', '')
         temp = re.sub( '\s+', ' ', temp2 ).strip()
         columnValues = temp.split(' ')
 
@@ -1026,7 +1026,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
 
             # Parse the columns
             # Strip and replace ugly stuff
-            temp2 = line.replace('->','')
+            temp2 = line.replace('->', '')
             temp = re.sub( '\s+', ' ', temp2 ).strip()
             columnValues = temp.split(' ')
 
@@ -1236,7 +1236,7 @@ def process_netflow(labelmachine):
 
         # Open flows file
         try:
-            input_file = open(args.netflowFile,'r')
+            input_file = open(args.netflowFile, 'r')
         except Exception as inst:
             print('Some problem opening the input netflow file. In process_netflow()')
             print(type(inst))     # the exception instance
@@ -1257,7 +1257,7 @@ def process_netflow(labelmachine):
             print(f'[+] Type of flow file to label: {filetype}')
 
         # Create the output file for all cases
-        output_file = open(args.netflowFile+'.labeled','w+')
+        output_file = open(args.netflowFile+'.labeled', 'w+')
 
         # Store the headers in the output file
         output_netflow_line_to_file(output_file, headerline)
@@ -1386,10 +1386,10 @@ if __name__ == '__main__':
 
     # Parse the parameters
     parser = argparse.ArgumentParser(description="Tool to label netflow files", add_help=False)
-    parser.add_argument('-c','--configFile', metavar='<configFile>', action='store', required=True, help='path to labeling rules configuration.')
-    parser.add_argument('-v', '--verbose',metavar='<verbose>',action='store', required=False, type=int, default=0, help='amount of verbosity. This shows more info about the results.')
+    parser.add_argument('-c', '--configFile', metavar='<configFile>', action='store', required=True, help='path to labeling rules configuration.')
+    parser.add_argument('-v', '--verbose', metavar='<verbose>', action='store', required=False, type=int, default=0, help='amount of verbosity. This shows more info about the results.')
     parser.add_argument('-d', '--debug', action='store', required=False, type=int, default=0, help='amount of debugging. This shows inner information about the program.')
-    parser.add_argument('-f', '--netflowFile',metavar='<netflowFile>', action='store', required=True, help='file to label.')
+    parser.add_argument('-f', '--netflowFile', metavar='<netflowFile>', action='store', required=True, help='file to label.')
     parser.add_argument("-h", "--help", action="help", help="command line help")
     args = parser.parse_args()
 
