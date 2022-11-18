@@ -749,7 +749,7 @@ def define_columns(headerline, filetype):
         # We need a temp dict because we can not change the size of dict while analyzing it
         temp_dict = {}
         for i in column_idx:
-            if type(column_idx[i]) == bool and column_idx[i] == False:
+            if type(column_idx[i]) == bool and column_idx[i] is False:
                 continue
             temp_dict[i] = column_idx[i]
         column_idx = temp_dict
