@@ -118,7 +118,7 @@ class labeler():
                     allTrue = True
                     for acond in andcondition:
                         if args.debug > 0:
-                           print('\t\t\tAnd this with : {0}'.format(acond))
+                            print('\t\t\tAnd this with : {0}'.format(acond))
 
                         condColumn = list(acond.keys())[0]
                         condValue = acond[condColumn].lower()
