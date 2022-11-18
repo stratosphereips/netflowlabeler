@@ -392,8 +392,8 @@ def process_nfdump(f, headers, labelmachine):
     columnDict = {}
 
     # if args.debug > 0:
-        # print 'netflowArray'
-        # print netflowArray
+    #    print 'netflowArray'
+    #    print netflowArray
 
     # Create the output file with the header
     outputfile = open(args.netflowFile+'.labeled', 'w+')
@@ -597,7 +597,7 @@ def process_nfdump(f, headers, labelmachine):
         netflowArray[13] = dict
 
         # if args.debug > 0:
-            # print netflowArray
+        #    print netflowArray
 
         # Ask to store the netflow
         output_netflow_line_to_file(outputfile, netflowArray)
