@@ -25,6 +25,10 @@
 # A tool to add labels in netflow files based on a configuration.
 # Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
 
+"""
+netflowlabeler.py is a tool to add labels in netflow files based on a
+configuration file.
+"""
 import sys
 import re
 import json
