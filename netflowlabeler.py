@@ -132,7 +132,7 @@ class labeler():
                             if args.debug > 0:
                                 print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
 
-                            if (condValue != netflowValue) or (condValue == 'all') :
+                            if (condValue != netflowValue) or (condValue == 'all'):
                                 allTrue = True
                                 if args.debug > 0:
                                     print('\t\t\tTrue (negative)')
@@ -155,7 +155,7 @@ class labeler():
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue < flowvalue'
-                                    if (int(condValue) < int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) < int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -171,7 +171,7 @@ class labeler():
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue > flowvalue'
-                                    if (int(condValue) > int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) > int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -187,7 +187,7 @@ class labeler():
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue >= flowvalue'
-                                    if (int(condValue) >= int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) >= int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -203,7 +203,7 @@ class labeler():
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue <= flowvalue'
-                                    if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) <= int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -217,7 +217,7 @@ class labeler():
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
-                                    if (int(condValue) == int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) == int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -253,7 +253,7 @@ class labeler():
                             else:
                                 # It is not a colum that we can treat as a number
                                 netflowValue = column_values[condColumn]
-                                if (condValue == netflowValue) or (condValue == 'all') :
+                                if (condValue == netflowValue) or (condValue == 'all'):
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
