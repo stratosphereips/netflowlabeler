@@ -146,7 +146,7 @@ class labeler():
                             # Normal condition, no negation
 
                             # Is the column a number?
-                            if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in  condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
                                 # It is a colum that we can treat as a number
                                 # Find if there is <, > or = in the condition
                                 if '>' in condColumn[-1]:
