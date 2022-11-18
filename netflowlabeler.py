@@ -89,7 +89,7 @@ class labeler():
         """
         try:
             # Default to empty genericlabel and detailedlabel
-            labelToReturn= ( "(empty)", "(empty)")
+            labelToReturn= ("(empty)", "(empty)")
 
             # Process all the conditions
             for group in self.conditionsGroup:
@@ -344,7 +344,7 @@ def process_nfdump(f, headers, labelmachine):
 
     # Replace the TABs for spaces, if it has them..., and replace the : in the ports to spaces also, and strip the \n, and the word flow
     temp2 = headers.replace('flow', '')
-    temp = re.sub( '\s+', ' ', temp2 ).replace(':', ' ').strip()
+    temp = re.sub('\s+', ' ', temp2 ).replace(':', ' ').strip()
     columnNames = temp.split(' ')
 
     # Only to separate src ip from dst ip
@@ -413,7 +413,7 @@ def process_nfdump(f, headers, labelmachine):
         # Parse the columns
         # Strip and replace ugly stuff
         temp2 = line.replace('->', '')
-        temp = re.sub( '\s+', ' ', temp2 ).strip()
+        temp = re.sub('\s+', ' ', temp2 ).strip()
         columnValues = temp.split(' ')
 
         # Date
@@ -953,7 +953,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnDict = {}
 
         # Replace the TABs for spaces, if it has them..., and replace the : in the ports to spaces also, and strip the \n, and the word flow
-        temp = re.sub( '\s+', ' ', headers ).strip()
+        temp = re.sub('\s+', ' ', headers ).strip()
         columnNames = temp.split(' ')
 
         #if args.debug > 0:
@@ -1027,7 +1027,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
             # Parse the columns
             # Strip and replace ugly stuff
             temp2 = line.replace('->', '')
-            temp = re.sub( '\s+', ' ', temp2 ).strip()
+            temp = re.sub('\s+', ' ', temp2 ).strip()
             columnValues = temp.split(' ')
 
             #if args.debug > 0:
