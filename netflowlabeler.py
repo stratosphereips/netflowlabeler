@@ -288,6 +288,7 @@ class labeler():
             print(inst)           # __str__ allows args to printed directly
             exit(-1)
 
+
 def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
     """
     Get data and store it on a new file
@@ -824,6 +825,7 @@ def define_type(data):
         print(str(inst), 0, 1)
         sys.exit(1)
 
+
 def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
     """
     Process a Zeek file
@@ -929,6 +931,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         print(str(type(inst)), 0, 1)
         print(str(inst), 0, 1)
         sys.exit(1)
+
 
 def process_argus(column_idx, output_file, labelmachine, filetype):
     """
@@ -1217,6 +1220,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         print(str(type(inst)), 0, 1)
         print(str(inst), 0, 1)
         sys.exit(1)
+
 
 def process_netflow(labelmachine):
     """
