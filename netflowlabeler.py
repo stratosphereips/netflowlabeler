@@ -1396,13 +1396,13 @@ if __name__ == '__main__':
     # Parse the parameters
     parser = argparse.ArgumentParser(description="A configurable rule-based labeling tool for network flow files")
     parser.add_argument('-c', '--configFile', metavar='<configFile>', action='store',
-                        required=True, help='path to labeling configuration file.')
+                        required=True, help='path to labeling configuration.')
     parser.add_argument('-f', '--netflowFile', metavar='<netflowFile>', action='store',
-                        required=True, help='file to label.')
-    parser.add_argument('-v', '--verbose', metavar='<verbose>', action='store',
+                        required=True, help='path to the file to label.')
+    parser.add_argument('-v', '--verbose', action='store',
                         required=False, type=int, default=0, help='set verbosity level.')
     parser.add_argument('-d', '--debug', action='store', required=False, type=int, default=0,
-                        help='amount of debugging. This shows inner information about the program.')
+                        help='set debugging level.')
     args = parser.parse_args()
 
     try:
