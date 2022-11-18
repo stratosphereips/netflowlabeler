@@ -1418,3 +1418,9 @@ if __name__ == '__main__':
         # CTRL-C pretty handling.
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
+    except Exception as inst:
+        # Notify of any other exception
+        print('Exception in __main__')
+        print(type(inst))     # the exception instance
+        print(inst.args)      # arguments stored in .args
+        print(inst)           # __str__ allows args to printed directly
