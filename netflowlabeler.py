@@ -350,7 +350,7 @@ def process_nfdump(f, headers, labelmachine):
     # Only to separate src ip from dst ip
     addressType = ''
 
-    #if args.debug > 0:
+    # if args.debug > 0:
     #    print 'Columns names: {0}'.format(columnNames)
 
     for cN in columnNames:
@@ -391,9 +391,9 @@ def process_nfdump(f, headers, labelmachine):
     netflowArray.append(columnDict)
     columnDict = {}
 
-    #if args.debug > 0:
-        #print 'netflowArray'
-        #print netflowArray
+    # if args.debug > 0:
+        # print 'netflowArray'
+        # print netflowArray
 
     # Create the output file with the header
     outputfile = open(args.netflowFile+'.labeled', 'w+')
@@ -442,7 +442,7 @@ def process_nfdump(f, headers, labelmachine):
         # Store the value in the dict
         dict = netflowArray[3]
         columnName = list(dict.keys())[0]
-        #columnName = 'Proto'
+        # columnName = 'Proto'
         dict[columnName] = protocol
         netflowArray[3] = dict
 
@@ -583,7 +583,7 @@ def process_nfdump(f, headers, labelmachine):
         dict[columnName] = ""
         netflowArray[13] = dict
 
-        #if args.debug > 0:
+        # if args.debug > 0:
         #    print date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows
         #    print netflowArray
 
@@ -596,8 +596,8 @@ def process_nfdump(f, headers, labelmachine):
         dict[columnName] = genericlabel
         netflowArray[13] = dict
 
-        #if args.debug > 0:
-            #print netflowArray
+        # if args.debug > 0:
+            # print netflowArray
 
         # Ask to store the netflow
         output_netflow_line_to_file(outputfile, netflowArray)
@@ -880,7 +880,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 else:
                     dbytes = int(column_values['dbytes'])
                 column_values['bytes'] = str(sbytes + dbytes)
-                #print(f'New column bytes = {column_values["bytes"]}')
+                # print(f'New column bytes = {column_values["bytes"]}')
 
                 # Sum packets
                 # We do it like this because sometimes the column can be - or 0
@@ -893,7 +893,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 else:
                     dpkts = int(column_values['dpkts'])
                 column_values['pkts'] = str(spkts + dpkts)
-                #print(f'New column pkst = {column_values["pkts"]}')
+                # print(f'New column pkst = {column_values["pkts"]}')
 
                 # Sum ip_bytes
                 # We do it like this because sometimes the column can be - or 0
@@ -906,7 +906,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 else:
                     dip_bytes = int(column_values['resp_ip_bytes'])
                 column_values['ipbytes'] = str(sip_bytes + dip_bytes)
-                #print(f'New column ipbytes = {column_values["ipbytes"]}')
+                # print(f'New column ipbytes = {column_values["ipbytes"]}')
 
                 # Request a label
                 genericlabel, detailedlabel = labelmachine.getLabel(column_values)
@@ -956,7 +956,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         temp = re.sub('\s+', ' ', headers ).strip()
         columnNames = temp.split(' ')
 
-        #if args.debug > 0:
+        # if args.debug > 0:
         #    print 'Columns names: {0}'.format(columnNames)
 
         # So far argus does no have a column Date
@@ -1030,7 +1030,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
             temp = re.sub('\s+', ' ', temp2 ).strip()
             columnValues = temp.split(' ')
 
-            #if args.debug > 0:
+            # if args.debug > 0:
             #    print columnValues
 
             # Date
@@ -1211,7 +1211,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
 
-            #if args.debug > 0:
+            # if args.debug > 0:
             #    print netflowArray
 
             # Ask to store the netflow
@@ -1318,11 +1318,11 @@ def loadConditions(labelmachine):
     conditionsList = []
     try:
         conf = open(args.configFile)
-        #try:
+        # try:
         #    if args.verbose > 0:
-        ##        print('Opening the configuration file \'{0}\''.format(args.configFile))
+        #        print('Opening the configuration file \'{0}\''.format(args.configFile))
         #    conf = open(args.configFile)
-        #except:
+        # except:
         #    print('The file \'{0}\' couldn\'t be opened.'.format(args.configFile))
         #    exit(1)
 
@@ -1342,7 +1342,7 @@ def loadConditions(labelmachine):
             # Read a label
             if line.strip()[0] != '-':
                 label = line.split(':')[0]
-                #if args.debug > 0:
+                # if args.debug > 0:
                 #    print 'Label: {}'.format(label)
                 conditions[label]=[]
 
