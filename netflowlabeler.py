@@ -339,12 +339,15 @@ def process_nfdump(f, headers, labelmachine):
     # Just to monitor how many lines we read
     amount_lines_processed = 0
 
-    # Parse the file into an array of dictionaries. We will use the columns names as dictionary keys
+    # Parse the file into an array of dictionaries.
+    # We will use the columns names as dictionary keys
     # Example: [ {'Date': '10/10/2013} , {'SrcIp':'1.1.1.1} , , ]
     netflowArray = []
     columnDict = {}
 
-    # Replace the TABs for spaces, if it has them..., and replace the : in the ports to spaces also, and strip the \n, and the word flow
+    # Replace the TABs for spaces, if it has them...,
+    # and replace the : in the ports to spaces also,
+    # and strip the \n, and the word flow
     temp2 = headers.replace('flow', '')
     temp = re.sub('\s+', ' ', temp2).replace(':', ' ').strip()
     columnNames = temp.split(' ')
@@ -480,7 +483,8 @@ def process_nfdump(f, headers, labelmachine):
                 dict[columnName] = dstport
                 netflowArray[7] = dict
             elif len(temp.split(':')) > 2:
-                # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow..
+                # We are using ipv6! THIS DEPENDS A LOT ON THE
+                # program that created the netflow..
                 srcip = temp[0:temp.rfind(':')]
                 # Store the value in the dict
                 dict = netflowArray[4]
@@ -767,7 +771,8 @@ def define_columns(headerline, filetype):
 
 def define_type(data):
     """
-    Try to define very fast the type of input from :Zeek file, Suricata json, Argus binetflow CSV, Argus binetflow TSV
+    Try to define very fast the type of input from :Zeek file,
+    Suricata json, Argus binetflow CSV, Argus binetflow TSV
     Using a Heuristic detection
     Input: The first line after the headers if there were some, as 'data'
     Outputs types can be can be: zeek-json, suricata, argus-tab, argus-csv, zeek-tab
