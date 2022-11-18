@@ -22,7 +22,8 @@
 # Stratosphere Laboratory, Czech Technical University in Prague
 
 # Description
-# A tool to add labels in netflow files based on a configuration. Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
+# A tool to add labels in netflow files based on a configuration.
+# Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
 
 import sys
 import re
@@ -35,10 +36,9 @@ version = "0.4"
 
 class labeler():
     """
-    This class handles the adding of new labeling conditions and the return of the lables
-    """
-    conditionsGroup = []
-    """
+    This class handles the adding of new labeling conditions
+    and the return of the labels
+
     conditionsGroup = [
             {'Background': [
                 [ {'srcIP': 'all'} ]
@@ -61,6 +61,7 @@ class labeler():
                 ] }
                       ]
     """
+    conditionsGroup = []
 
     def addCondition(self, condition):
         """
@@ -107,9 +108,11 @@ class labeler():
                 if args.debug > 0:
                     print('\t\tOr conditions group : {0}'.format(orConditions))
 
-                # orConditions is an array. Each position of this array should be ORed with the next position
+                # orConditions is an array.
+                # Each position of this array should be ORed with the next position
                 for andcondition in orConditions:
-                    # If any of these andConditions groups is true, just return the label, because this for is an 'OR'
+                    # If any of these andConditions groups is true,
+                    # just return the label, because this for is an 'OR'
                     if args.debug > 0:
                         print('\t\tAnd condition group : {0}'.format(andcondition))
 
