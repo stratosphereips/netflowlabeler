@@ -1336,12 +1336,17 @@ def loadConditions(labelmachine):
         if args.debug > 0:
             print('Loading the conditions from the configuration file ')
 
-        # Read the conf file
+        # Read the labeling configuration file
         line = conf.readline().strip()
         conditions = {}
 
+        # Process each line of the labeling configuration file
+        # There are three possible options here:
+        #     - We read a comment: #
+        #     - We read a label: does not start with symbols
+        #     - We read a label condition: starts with '-'
         while line:
-            # Ignore comments
+            # Ignore comments marked with '#'
             if line.strip().find('#') == 0:
                 line = conf.readline().strip()
                 continue
@@ -1356,11 +1361,15 @@ def loadConditions(labelmachine):
                 # Now read all the conditions for this label
                 line = conf.readline().strip()
                 while line:
+                    # If line starts with '-' is a condition
                     if line.strip()[0] == '-':
-                        # Condition
+                        # Parse the condition
                         tempAndConditions = line.strip().split('-')[1]
                         if args.debug > 1:
                             print(f'Condition: {tempAndConditions}')
+
+                        # Check if the condition is composed,
+                        # e.g.: srcIP=xxx.xxx.xxx.xxx & dstPort=xx
                         andConditions = []
                         for andCond in tempAndConditions.split('&'):
                             tempdict = {}
