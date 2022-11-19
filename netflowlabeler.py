@@ -1318,7 +1318,7 @@ def process_netflow(labelmachine):
         exit(-1)
 
 
-def loadConditions(labelmachine):
+def load_conditions(labelmachine):
     """
     Load the labeling conditions from a conf file
     """
@@ -1389,7 +1389,7 @@ def loadConditions(labelmachine):
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
     except Exception as inst:
-        print('Problem in main() function at loadConditions ')
+        print('Problem in main() function at load_conditions ')
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
@@ -1419,7 +1419,7 @@ if __name__ == '__main__':
         labelmachine = labeler()
 
         # Load conditions
-        loadConditions(labelmachine)
+        load_conditions(labelmachine)
 
         # Direct process of netflow flows
         process_netflow(labelmachine)
