@@ -1235,7 +1235,9 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
 
 def process_netflow(labelmachine):
     """
-    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
+    This function takes the flowFile and parse it.
+    Then it asks for a label and finally it calls
+    a function to store the netflow in a file.
     """
     try:
         if args.verbose > 0:
