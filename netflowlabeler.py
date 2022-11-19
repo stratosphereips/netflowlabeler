@@ -1327,13 +1327,6 @@ def load_conditions(labelmachine):
     conditionsList = []
     try:
         conf = open(args.configFile)
-        # try:
-        #    if args.verbose > 0:
-        #        print(f'Opening the configuration file \'{args.configFile}\'')
-        #    conf = open(args.configFile)
-        # except:
-        #    print(f'The file \'{args.configFile}\' couldn\'t be opened.')
-        #    exit(1)
 
         if args.debug > 0:
             print('Loading the conditions from the configuration file ')
