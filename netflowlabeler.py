@@ -1322,7 +1322,8 @@ def process_netflow(labelmachine):
 
 def load_conditions(labelmachine):
     """
-    Load the labeling conditions from a conf file
+    Load the labeling conditions from a configuration file.
+    Input: labelmachine is a labeler object
     """
     conditionsList = []
     try:
