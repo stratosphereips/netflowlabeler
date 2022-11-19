@@ -10,11 +10,18 @@ Netflowlabeler is a Python tool to add labels to netflow text files. If you have
 
 You can add a generic label and a detailed label.
 
-For now it works only in Zeek conn.log files separated by TABS. In the future it will include Zeek with JSON and CSV, Argus with CSV and TABS, Nfdump with CSV and Suricata with JSON
+For now it works only in for Zeek files separated by TABS. In the future it will include Zeek with JSON and CSV, Argus with CSV and TABS, Nfdump with CSV and Suricata with JSON
 
-# Usage
+__netflowlabeler.py__ can label conn.log files based on a configuration file. __zeek-files-labeler.py__ can label the rest of the Zeek log files, using the labels in the conn.log file.
+
+
+# Usage for labeling a conn.log file
 
     netflowlabeler.py -c <configFile> [-v <verbose>] [-d DEBUG] -f <netflowFile> [-h]
+
+# Usage for using the labels in a conn.log file to label the rest of the Zeek file
+
+    zeek-files-labeler.py -l conn.log.labeled -f folder-with-zeek-log-files
 
 # Features
 
@@ -23,6 +30,8 @@ For now it works only in Zeek conn.log files separated by TABS. In the future it
 - You can use negative conditions
 - All columns that can be interpreted as numbers can be compared with <, >, <= and >=
 - You can add comments in any place
+- You can use CIDR notation for IP ranges
+- You can label all the Zeek log files, by using the labels you put in the conn.log file
 
 # Example Configuration File of Labels
 
@@ -82,8 +91,18 @@ The fields 'Bytes', 'Packets' and 'IPBytes' are computed in Zeek from the fields
 
 Netflow labeler has a public docker image with the latest version. 
 
-    docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest /bin/bash
+To test the labeler is working correctly, run the following command. The command will run the netflow labeler tool on a Zeek example conn.log file and then cat the labeled file to the standard output. You should see the fresh labels in the output (e.g.: search for the string 'Test-smallbytes').
 
-Or label directly with:
+```bash
+docker run --tty -it stratosphereips/netflowlabeler:latest /bin/bash -c 'python3 netflowlabeler.py -c labels.config  -f examples/conn.tab.log ; cat examples/conn.tab.log.labeled'
+```
 
-    docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
+To mount your logs path to the container and run the netflow labeler interactively:
+```bash
+docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest /bin/bash
+```
+
+To mount your logs path to the container and automatically run the netflow labeler on it with your own labels.config file:
+```bash
+docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
+```

@@ -29,6 +29,7 @@ import sys
 import re
 import json
 import argparse
+import ipaddress
 
 version = "0.5"
 
@@ -227,6 +228,28 @@ class labeler():
                                         allTrue = False
                                         break
 
+                            # Is the column related to an IP and the value has a / for the CIDR?
+                            elif ('ip' in condColumn) and ('/' in condValue):
+                                netflowValue = column_values[condColumn]
+                                if ':' in condValue:
+                                    temp_net = ipaddress.IPv6Network(condValue)
+                                else:
+                                    temp_net = ipaddress.IPv4Network(condValue)
+                                temp_ip = ipaddress.ip_address(netflowValue)
+                                if temp_ip in temp_net:
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    allTrue = True
+                                    if args.debug > 0:
+                                        print('\t\t\tTrue')
+                                    continue
+                                else:
+                                    if args.debug > 0:
+                                        print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+                                    if args.debug > 0:
+                                        print('\t\t\tFalse')
+                                    allTrue = False
+                                    break
                             else:
                                 # It is not a colum that we can treat as a number
                                 netflowValue = column_values[condColumn]
