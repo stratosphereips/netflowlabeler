@@ -79,7 +79,7 @@ class labeler():
                 print(f'\tCondition added: {condition}')
 
         except Exception as inst:
-            print('Problem in addCondition() in class labeler')
+            print('[!] Error in class labeler addCondition(): unable to add a condition')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
@@ -87,8 +87,13 @@ class labeler():
 
     def getLabel(self, column_values):
         """
-        Get the values of the columns of a netflow line and return a label
-        Input: column_values is a dict, where each key is the standard field in a netflow
+        Get the values of the columns of a netflow line,
+        matche the labels conditions, and return a label.
+
+        Input:
+            - column_values is a dict, where each key is the standard field in a netflow
+        Output:
+            - labelToReturn: return a tuple containing a generic and detailed label
         """
         try:
             # Default to empty genericlabel and detailedlabel
@@ -97,8 +102,11 @@ class labeler():
             # Process all the conditions
             for group in self.conditionsGroup:
                 # The first key of the group is the label to put
+                # Example: {'Botnet-SPAM': [[{'Proto': 'TCP'}, {'srcPort': '25'}], [{'Proto': 'TCP'}, {'dstPort': '25'}]]}
                 labelline = list(group.keys())[0]
                 genericlabelToVerify = labelline.split(',')[0].strip()
+
+                # The detailed label may not be there, try to obtain it
                 try:
                     detailedlabelToVerify = labelline.split(',')[1].strip()
                 except IndexError:
@@ -106,7 +114,7 @@ class labeler():
                     detailedlabelToVerify = '(empty)'
 
                 if args.debug > 0:
-                    print(f'\tLabel to verify {labelline}')
+                    print(f'\tLabel to verify {labelline}: {genericlabelToVerify} {detailedlabelToVerify}')
 
                 orConditions = group[labelline]
                 if args.debug > 0:
@@ -151,7 +159,11 @@ class labeler():
                             # Normal condition, no negation
 
                             # Is the column a number?
-                            if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            # if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            column_num_keywords = ['bytes', 'packets', 'srcport', 'dstport',
+                                                   'sbytes', 'dbytes', 'spkts', 'dpkts',
+                                                   'ip_orig_bytes', 'ip_resp_bytes']
+                            if any(keyword in condColumn for keyword in column_num_keywords):
                                 # It is a colum that we can treat as a number
                                 # Find if there is <, > or = in the condition
                                 if '>' in condColumn[-1]:
@@ -159,6 +171,7 @@ class labeler():
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+
                                     # Pay attention to directionality of condition 'condValue < flowvalue'
                                     if (int(condValue) < int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
@@ -255,8 +268,9 @@ class labeler():
                                         print('\t\t\tFalse')
                                     allTrue = False
                                     break
+
+                            # It is not a colum that we can treat as a number
                             else:
-                                # It is not a colum that we can treat as a number
                                 netflowValue = column_values[condColumn]
                                 if (condValue == netflowValue) or (condValue == 'all'):
                                     netflowValue = column_values[condColumn]
@@ -280,15 +294,17 @@ class labeler():
                         if args.debug > 0:
                             print(f'\tNew label assigned: {genericlabelToVerify} {detailedlabelToVerify}')
 
-            if args.verbose > 0:
+            if args.verbose > 1:
                 if 'Background' in labelToReturn:
                     print(f'\tFinal label assigned: {labelToReturn}')
                 else:
                     print(f'\tFinal label assigned: \x1b\x5b1;31;40m{labelToReturn}\x1b\x5b0;0;40m')
+
             return labelToReturn
 
         except Exception as inst:
-            print('Problem in getLabel() in class labeler')
+            print('[!] Error in class labeler getLabel(): unable to label the given column values')
+            print(column_values)
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
@@ -839,12 +855,18 @@ def define_type(data):
 
 def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
     """
-    Process a Zeek file
-    The filetype can be: 'tab', 'csv', 'json'
+    Process and label a Zeek file using the label configuration.
+    Zeek files can have three distinct field separators:
+        - 'tab': currently supported
+        - 'csv': currently supported
+        - 'json': not implemented yet
     """
     try:
         amount_lines_processed = 0
         column_values = {}
+
+        if args.verbose > 0:
+            print(f'[+] Labeling the flow file {args.netflowFile}')
 
         # Read firstlines
         line = input_file.readline()
@@ -853,19 +875,23 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         while '#' in line:
             line = input_file.readline()
 
+        # Process each flow in input file
         while line:
-            # Count the first line
+            # Count the flows processed
             amount_lines_processed += 1
 
-            if args.verbose > 0:
+            if args.verbose > 1:
                 print(f'Netflow line: {line}', end='')
 
+            # Zeek files can be in csv, tab or JSON format
+            # Labeling CSV and TAB uses the same method
             if 'csv' in filetype or 'tab' in filetype:
                 # Work with csv and tabs
                 if 'csv' in filetype:
                     separator = ','
                 elif 'tab' in filetype:
                     separator = '\t'
+
                 # Transform the line into an array
                 line_values = line.split(separator)
 
@@ -879,7 +905,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['pkts'] = ''
                 column_values['ipbytes'] = ''
 
-                # Sum bytes
+                # bytes: total bytes. Calculated as the SUM of sbytes and dbytes
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['sbytes'] == '-':
                     sbytes = 0
@@ -892,7 +918,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['bytes'] = str(sbytes + dbytes)
                 # print(f'New column bytes = {column_values["bytes"]}')
 
-                # Sum packets
+                # pkts: total packets. Calculated as the SUM of spkts and dpkts
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['spkts'] == '-':
                     spkts = 0
@@ -905,7 +931,8 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['pkts'] = str(spkts + dpkts)
                 # print(f'New column pkst = {column_values["pkts"]}')
 
-                # Sum ip_bytes
+                # ipbytes: total transferred bytes.
+                # Calculated as the SUM of orig_ip_bytes and resp_ip_bytes.
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['orig_ip_bytes'] == '-':
                     sip_bytes = 0
@@ -926,6 +953,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 # Store the netflow
                 output_netflow_line_to_file(output_file, line, filetype, genericlabel=genericlabel, detailedlabel=detailedlabel)
 
+                # Read next flow line ignoring comments
                 line = input_file.readline()
                 while '#' in line:
                     line = input_file.readline()
@@ -935,10 +963,11 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 amount_lines_processed += 1
                 pass
 
+        # Returned number of labeled flows
         return amount_lines_processed
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
-        print(f'\tProblem in process_zeek() line {exception_line}', 0, 1)
+        print(f'\t[!] Error in process_zeek(): exception in line {exception_line}', 0, 1)
         print(str(type(inst)), 0, 1)
         print(str(inst), 0, 1)
         sys.exit(1)
@@ -1235,7 +1264,9 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
 
 def process_netflow(labelmachine):
     """
-    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
+    This function takes the flowFile and parse it.
+    Then it asks for a label and finally it calls
+    a function to store the netflow in a file.
     """
     try:
         if args.verbose > 0:
@@ -1245,31 +1276,41 @@ def process_netflow(labelmachine):
         try:
             input_file = open(args.netflowFile, 'r')
         except Exception as inst:
-            print('Some problem opening the input netflow file. In process_netflow()')
+            print('[!] Error in process_netflow: cannot open the input netflow file.')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
             sys.exit(-1)
 
-        # ---- Define the type of file
+        # Define the type of file
         headerline = input_file.readline()
 
-        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date'
-        if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
-            print('The file has not headers. Please add them.')
+        # If there are no headers, do not process the file:
+        #  - Zeek headers start with '#'
+        #  - Argus headers start with 'StartTime'
+        #  - nfdump headers start with 'Date'
+        # if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
+        header_keywords = ['#', 'Date', 'StarTime', 'ts', 'timestamp']
+        if not any(headerline.startswith(keyword) for keyword in header_keywords):
+            print('[!] Error in process_netflow: the input netflow file has not headers.')
             sys.exit(-1)
 
+        # Attempt to automatically identify the type of file
+        # from the header of the netflow file
         filetype = define_type(headerline)
         if args.verbose > 0:
-            print(f'[+] Type of flow file to label: {filetype}')
+            print(f'[+] The input netflow file to label was identified as: {filetype}')
 
-        # Create the output file for all cases
+        # Create the output file to store the labeled netflows
         output_file = open(args.netflowFile+'.labeled', 'w+')
+        if args.verbose > 0:
+            print(f"[+] The netflow file labeled can be found at: {args.netflowFile+'.labeled'}")
 
         # Store the headers in the output file
         output_netflow_line_to_file(output_file, headerline)
 
-        # ---- Define the columns
+        # Define the columns based on the type of the input netflow file
+        # and call the labeler function based on the detected type
         if filetype == 'zeek-json':
             column_idx = define_columns(headerline, filetype='json')
             amount_lines_processed = 0
@@ -1292,46 +1333,48 @@ def process_netflow(labelmachine):
                 if '#fields' in headerline:
                     fields_headerline = headerline
                 headerline = input_file.readline()
+
                 # Store the rest of the zeek headers in the output file
                 output_netflow_line_to_file(output_file, headerline, filetype='tab')
+
             # Get the columns indexes
             column_idx = define_columns(fields_headerline, filetype='tab')
+
             # Process the whole file
             amount_lines_processed = process_zeek(column_idx, input_file, output_file, labelmachine, filetype='tab')
-            # Close the netflow file
-            input_file.close()
+
         elif filetype == 'nfdump-tab':
             column_idx = define_columns(headerline, filetype='tab')
             amount_lines_processed = process_nfdump(column_idx, input_file, output_file, headerline, labelmachine)
+        else:
+            print(f"[!] Error in process_netflow: filetype not supported {filetype}")
 
-        # Close the outputfile
+        # Close the input file
+        input_file.close()
+
+        # Close the output file
         output_file.close()
 
-        print(f'Amount of lines read: {amount_lines_processed}')
+        print(f"[+] Labeling completed. Total number of flows read: {amount_lines_processed}")
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
-        print(f'Problem in process_netflow() line {exception_line}', 0, 1)
+        print(f'[!] Error in process_netflow() line {exception_line}', 0, 1)
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
-def loadConditions(labelmachine):
+def load_conditions(labelmachine):
     """
-    Load the labeling conditions from a conf file
+    Load the labeling conditions from a configuration file.
+    Input: labelmachine is a labeler object
+    Output: modified labelmachine object. No return instruction.
     """
     conditionsList = []
     try:
         conf = open(args.configFile)
-        # try:
-        #    if args.verbose > 0:
-        #        print(f'Opening the configuration file \'{args.configFile}\'')
-        #    conf = open(args.configFile)
-        # except:
-        #    print(f'The file \'{args.configFile}\' couldn\'t be opened.')
-        #    exit(1)
 
         if args.debug > 0:
             print('Loading the conditions from the configuration file ')
@@ -1380,6 +1423,7 @@ def loadConditions(labelmachine):
 
                         line = conf.readline().strip()
                     else:
+                        # Finished reading all conditions for a given label
                         break
             labelmachine.addCondition(conditions)
             conditions = {}
@@ -1389,7 +1433,7 @@ def loadConditions(labelmachine):
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
     except Exception as inst:
-        print('Problem in main() function at loadConditions ')
+        print('Problem in main() function at load_conditions ')
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
@@ -1418,8 +1462,8 @@ if __name__ == '__main__':
         # Create an instance of the labeler
         labelmachine = labeler()
 
-        # Load conditions
-        loadConditions(labelmachine)
+        # Load labeling conditions from config file
+        load_conditions(labelmachine)
 
         # Direct process of netflow flows
         process_netflow(labelmachine)

@@ -106,3 +106,26 @@ To mount your logs path to the container and automatically run the netflow label
 ```bash
 docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
 ```
+
+# Netflow Labeler High Level Diagram
+
+```mermaid
+flowchart LR;
+    NetFlow["Netflow File"]-->labeler;
+    Config["Labels Config"]-->labeler;
+    subgraph ONE["Interpret Input File"]
+        labeler-->load_conditions;
+        load_conditions-->process_netflow;
+        process_netflow-->define_type;
+        define_type-->define_columns;
+    end
+    subgraph TWO["Label NetFlow File"]
+        define_columns-.->process_argus;
+        define_columns-.->process_nfdump;
+        define_columns-->process_zeek;
+        process_argus-.->output_netflow_line_to_file;
+        process_nfdump-.->output_netflow_line_to_file;
+        process_zeek-->output_netflow_line_to_file;
+    end
+    output_netflow_line_to_file-->Output["Labeled NetFlow File"];
+```
