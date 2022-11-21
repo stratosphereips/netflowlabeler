@@ -1260,18 +1260,22 @@ def process_netflow(labelmachine):
         #  - Zeek headers start with '#'
         #  - Argus headers start with 'StartTime'
         #  - nfdump headers start with 'Date'
-        #if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
+        # if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
         header_keywords = ['#', 'Date', 'StarTime', 'ts', 'timestamp']
         if not any(headerline.startswith(keyword) for keyword in header_keywords):
             print('[!] Error in process_netflow: the input netflow file has not headers.')
             sys.exit(-1)
 
+        # Attempt to automatically identify the type of file
+        # from the header of the netflow file
         filetype = define_type(headerline)
         if args.verbose > 0:
-            print(f'[+] Type of flow file to label: {filetype}')
+            print(f'[+] The input netflow file to label was identified as: {filetype}')
 
         # Create the output file for all cases
         output_file = open(args.netflowFile+'.labeled', 'w+')
+        if args.verbose > 0:
+            print(f"[+] The netflow file labeled can be found at: {args.netflowFile+'.labeled'}")
 
         # Store the headers in the output file
         output_netflow_line_to_file(output_file, headerline)
