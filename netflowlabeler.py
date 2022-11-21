@@ -1304,21 +1304,26 @@ def process_netflow(labelmachine):
                 if '#fields' in headerline:
                     fields_headerline = headerline
                 headerline = input_file.readline()
+
                 # Store the rest of the zeek headers in the output file
                 output_netflow_line_to_file(output_file, headerline, filetype='tab')
+
             # Get the columns indexes
             column_idx = define_columns(fields_headerline, filetype='tab')
+
             # Process the whole file
             amount_lines_processed = process_zeek(column_idx, input_file, output_file, labelmachine, filetype='tab')
-            # Close the netflow file
-            input_file.close()
+
         elif filetype == 'nfdump-tab':
             column_idx = define_columns(headerline, filetype='tab')
             amount_lines_processed = process_nfdump(column_idx, input_file, output_file, headerline, labelmachine)
         else:
             print(f"[!] Error in process_netflow: filetype not supported {filetype}")
 
-        # Close the outputfile
+        # Close the input file
+        input_file.close()
+
+        # Close the output file
         output_file.close()
 
         print(f"[+] Labeling completed. Total number of flows read: {amount_lines_processed}")
