@@ -161,8 +161,8 @@ class labeler():
                             # Is the column a number?
                             # if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
                             column_num_keywords = ['bytes', 'packets', 'srcport', 'dstport',
-                                                    'sbytes', 'dbytes', 'spkts', 'dpkts',
-                                                    'ip_orig_bytes', 'ip_resp_bytes']
+                                                   'sbytes', 'dbytes', 'spkts', 'dpkts',
+                                                   'ip_orig_bytes', 'ip_resp_bytes']
                             if any(keyword in condColumn for keyword in column_num_keywords):
                                 # It is a colum that we can treat as a number
                                 # Find if there is <, > or = in the condition
