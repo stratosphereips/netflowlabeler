@@ -1272,7 +1272,7 @@ def process_netflow(labelmachine):
         if args.verbose > 0:
             print(f'[+] The input netflow file to label was identified as: {filetype}')
 
-        # Create the output file for all cases
+        # Create the output file to store the labeled netflows
         output_file = open(args.netflowFile+'.labeled', 'w+')
         if args.verbose > 0:
             print(f"[+] The netflow file labeled can be found at: {args.netflowFile+'.labeled'}")
@@ -1280,7 +1280,8 @@ def process_netflow(labelmachine):
         # Store the headers in the output file
         output_netflow_line_to_file(output_file, headerline)
 
-        # ---- Define the columns
+        # Define the columns based on the type of the input netflow file
+        # and call the labeler function based on the detected type
         if filetype == 'zeek-json':
             column_idx = define_columns(headerline, filetype='json')
             amount_lines_processed = 0
@@ -1314,19 +1315,21 @@ def process_netflow(labelmachine):
         elif filetype == 'nfdump-tab':
             column_idx = define_columns(headerline, filetype='tab')
             amount_lines_processed = process_nfdump(column_idx, input_file, output_file, headerline, labelmachine)
+        else:
+            print(f"[!] Error in process_netflow: filetype not supported {filetype}")
 
         # Close the outputfile
         output_file.close()
 
-        print(f'Amount of lines read: {amount_lines_processed}')
+        print(f"[+] Labeling completed. Total number of flows read: {amount_lines_processed}")
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
-        print(f'Problem in process_netflow() line {exception_line}', 0, 1)
+        print(f'[!] Error in process_netflow() line {exception_line}', 0, 1)
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
 def load_conditions(labelmachine):
