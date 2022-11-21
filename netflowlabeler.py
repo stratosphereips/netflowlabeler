@@ -79,7 +79,7 @@ class labeler():
                 print(f'\tCondition added: {condition}')
 
         except Exception as inst:
-            print('Problem in addCondition() in class labeler')
+            print('[!] Error in class labeler addCondition(): unable to add a condition')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
@@ -87,8 +87,13 @@ class labeler():
 
     def getLabel(self, column_values):
         """
-        Get the values of the columns of a netflow line and return a label
-        Input: column_values is a dict, where each key is the standard field in a netflow
+        Get the values of the columns of a netflow line,
+        matche the labels conditions, and return a label.
+
+        Input:
+            - column_values is a dict, where each key is the standard field in a netflow
+        Output:
+            - labelToReturn: return a tuple containing a generic and detailed label
         """
         try:
             # Default to empty genericlabel and detailedlabel
@@ -97,8 +102,11 @@ class labeler():
             # Process all the conditions
             for group in self.conditionsGroup:
                 # The first key of the group is the label to put
+                # Example: {'Botnet-SPAM': [[{'Proto': 'TCP'}, {'srcPort': '25'}], [{'Proto': 'TCP'}, {'dstPort': '25'}]]}
                 labelline = list(group.keys())[0]
                 genericlabelToVerify = labelline.split(',')[0].strip()
+
+                # The detailed label may not be there, try to obtain it
                 try:
                     detailedlabelToVerify = labelline.split(',')[1].strip()
                 except IndexError:
@@ -106,7 +114,7 @@ class labeler():
                     detailedlabelToVerify = '(empty)'
 
                 if args.debug > 0:
-                    print(f'\tLabel to verify {labelline}')
+                    print(f'\tLabel to verify {labelline}: {genericlabelToVerify} {detailedlabelToVerify}')
 
                 orConditions = group[labelline]
                 if args.debug > 0:
@@ -288,7 +296,8 @@ class labeler():
             return labelToReturn
 
         except Exception as inst:
-            print('Problem in getLabel() in class labeler')
+            print('Error in class labeler getLabel(): unable to label the given column values')
+            print(column_values)
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
