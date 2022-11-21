@@ -1247,18 +1247,23 @@ def process_netflow(labelmachine):
         try:
             input_file = open(args.netflowFile, 'r')
         except Exception as inst:
-            print('Some problem opening the input netflow file. In process_netflow()')
+            print('[!] Error in process_netflow: cannot open the input netflow file.')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
             sys.exit(-1)
 
-        # ---- Define the type of file
+        # Define the type of file
         headerline = input_file.readline()
 
-        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date'
-        if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
-            print('The file has not headers. Please add them.')
+        # If there are no headers, do not process the file:
+        #  - Zeek headers start with '#'
+        #  - Argus headers start with 'StartTime'
+        #  - nfdump headers start with 'Date'
+        #if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
+        header_keywords = ['#', 'Date', 'StarTime', 'ts', 'timestamp']
+        if not any(headerline.startswith(keyword) for keyword in header_keywords):
+            print('[!] Error in process_netflow: the input netflow file has not headers.')
             sys.exit(-1)
 
         filetype = define_type(headerline)
