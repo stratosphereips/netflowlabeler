@@ -159,7 +159,11 @@ class labeler():
                             # Normal condition, no negation
 
                             # Is the column a number?
-                            if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            # if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            column_num_keywords = ['bytes', 'packets', 'srcport', 'dstport',
+                                                    'sbytes', 'dbytes', 'spkts', 'dpkts',
+                                                    'ip_orig_bytes', 'ip_resp_bytes']
+                            if any(keyword in condColumn for keyword in column_num_keywords):
                                 # It is a colum that we can treat as a number
                                 # Find if there is <, > or = in the condition
                                 if '>' in condColumn[-1]:
@@ -167,6 +171,7 @@ class labeler():
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+
                                     # Pay attention to directionality of condition 'condValue < flowvalue'
                                     if (int(condValue) < int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
@@ -263,8 +268,9 @@ class labeler():
                                         print('\t\t\tFalse')
                                     allTrue = False
                                     break
+
+                            # It is not a colum that we can treat as a number
                             else:
-                                # It is not a colum that we can treat as a number
                                 netflowValue = column_values[condColumn]
                                 if (condValue == netflowValue) or (condValue == 'all'):
                                     netflowValue = column_values[condColumn]
@@ -293,10 +299,11 @@ class labeler():
                     print(f'\tFinal label assigned: {labelToReturn}')
                 else:
                     print(f'\tFinal label assigned: \x1b\x5b1;31;40m{labelToReturn}\x1b\x5b0;0;40m')
+
             return labelToReturn
 
         except Exception as inst:
-            print('Error in class labeler getLabel(): unable to label the given column values')
+            print('[!] Error in class labeler getLabel(): unable to label the given column values')
             print(column_values)
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
