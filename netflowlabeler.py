@@ -1324,6 +1324,7 @@ def load_conditions(labelmachine):
     """
     Load the labeling conditions from a configuration file.
     Input: labelmachine is a labeler object
+    Output: modified labelmachine object. No return instruction.
     """
     conditionsList = []
     try:
@@ -1376,6 +1377,7 @@ def load_conditions(labelmachine):
 
                         line = conf.readline().strip()
                     else:
+                        # Finished reading all conditions for a given label
                         break
             labelmachine.addCondition(conditions)
             conditions = {}
@@ -1414,7 +1416,7 @@ if __name__ == '__main__':
         # Create an instance of the labeler
         labelmachine = labeler()
 
-        # Load conditions
+        # Load labeling conditions from config file
         load_conditions(labelmachine)
 
         # Direct process of netflow flows
