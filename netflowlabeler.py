@@ -35,7 +35,7 @@ import json
 import argparse
 import ipaddress
 
-version = "0.4"
+version = "0.5"
 
 
 class labeler():
