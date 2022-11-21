@@ -17,14 +17,18 @@
 #
 #
 # Authors:
-# Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, sgarcia@exa.unicen.edu.ar, eldraco@gmail.com
+# Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
 # Veronica Valeros, vero.valeros@gmail.com
 # Stratosphere Laboratory, Czech Technical University in Prague
 
 # Description
-# A tool to add labels in netflow files based on a configuration. Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
+# A tool to add labels in netflow files based on a configuration.
+# Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
 
-import getopt
+"""
+netflowlabeler.py is a tool to add labels in netflow files based on a
+configuration file.
+"""
 import sys
 import re
 import json
@@ -36,34 +40,34 @@ version = "0.4"
 
 class labeler():
     """
-    This class handles the adding of new labeling conditions and the return of the lables
-    """
-    conditionsGroup = []
-    """
-    conditionsGroup = [ 
-            {'Background': [ 
-                [ {'srcIP': 'all'} ] 
-                ] }, 
-            {'Normal': [ 
+    This class handles the adding of new labeling conditions
+    and the return of the labels
+
+    conditionsGroup = [
+            {'Background': [
+                [ {'srcIP': 'all'} ]
+                ] },
+            {'Normal': [
                 [ {'Proto':'IGMP'} ],
                 [ {'Proto':'ARP'} ]
-                ] }, 
+                ] },
             {'Botnet-CC': [
-                [ {'srcIP': '10.0.0.151'} ], 
+                [ {'srcIP': '10.0.0.151'} ],
                 [ {'dstIP': '10.0.0.151'} ]
-                ] }, 
+                ] },
             {'Botnet-SPAM': [
-                [ {'Proto': 'TCP'}, {'srcPort': '25'} ], 
+                [ {'Proto': 'TCP'}, {'srcPort': '25'} ],
                 [ {'Proto': 'TCP'}, {'dstPort': '25'} ]
-                ] }, 
-            {'Botnet-DGA': [ 
+                ] },
+            {'Botnet-DGA': [
                 [ {'Proto':'UDP'}, {'srcPort':'53'} ] ,
-                [ {'Proto':'UDP'}, {'dstPort':'53'} ] 
-                ] } 
+                [ {'Proto':'UDP'}, {'dstPort':'53'} ]
+                ] }
                       ]
     """
+    conditionsGroup = []
 
-    def addCondition(self,condition):
+    def addCondition(self, condition):
         """
         Add a condition.
         Input: condition is a string?
@@ -72,30 +76,37 @@ class labeler():
             self.conditionsGroup.append(condition)
 
             if args.debug > 0:
-                print('\tCondition added: {0}'.format(condition))
+                print(f'\tCondition added: {condition}')
 
         except Exception as inst:
-            print('Problem in addCondition() in class labeler')
+            print('[!] Error in class labeler addCondition(): unable to add a condition')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
-
+            sys.exit(-1)
 
     def getLabel(self, column_values):
         """
-        Get the values of the columns of a netflow line and return a label
-        Input: column_values is a dict, where each key is the standard field in a netflow
+        Get the values of the columns of a netflow line,
+        matche the labels conditions, and return a label.
+
+        Input:
+            - column_values is a dict, where each key is the standard field in a netflow
+        Output:
+            - labelToReturn: return a tuple containing a generic and detailed label
         """
         try:
             # Default to empty genericlabel and detailedlabel
-            labelToReturn= ( "(empty)", "(empty)")
+            labelToReturn = ("(empty)", "(empty)")
 
-            # Process all the conditions 
+            # Process all the conditions
             for group in self.conditionsGroup:
-                # The first key of the group is the label to put 
+                # The first key of the group is the label to put
+                # Example: {'Botnet-SPAM': [[{'Proto': 'TCP'}, {'srcPort': '25'}], [{'Proto': 'TCP'}, {'dstPort': '25'}]]}
                 labelline = list(group.keys())[0]
                 genericlabelToVerify = labelline.split(',')[0].strip()
+
+                # The detailed label may not be there, try to obtain it
                 try:
                     detailedlabelToVerify = labelline.split(',')[1].strip()
                 except IndexError:
@@ -103,36 +114,38 @@ class labeler():
                     detailedlabelToVerify = '(empty)'
 
                 if args.debug > 0:
-                    print(f'\tLabel to verify {labelline}')
+                    print(f'\tLabel to verify {labelline}: {genericlabelToVerify} {detailedlabelToVerify}')
 
                 orConditions = group[labelline]
                 if args.debug > 0:
-                    print('\t\tOr conditions group : {0}'.format(orConditions))
+                    print(f'\t\tOr conditions group : {orConditions}')
 
-                # orConditions is an array. Each position of this array should be ORed with the next position
+                # orConditions is an array.
+                # Each position of this array should be ORed with the next position
                 for andcondition in orConditions:
-                    # If any of these andConditions groups is true, just return the label, because this for is an 'OR'
+                    # If any of these andConditions groups is true,
+                    # just return the label, because this for is an 'OR'
                     if args.debug > 0:
-                        print('\t\tAnd condition group : {0}'.format(andcondition))
+                        print(f'\t\tAnd condition group : {andcondition}')
 
                     # With this we keep control of how each part of the and is going...
                     allTrue = True
                     for acond in andcondition:
                         if args.debug > 0:
-                           print('\t\t\tAnd this with : {0}'.format(acond))
+                            print(f'\t\t\tAnd this with : {acond}')
 
                         condColumn = list(acond.keys())[0]
                         condValue = acond[condColumn].lower()
                         condColumn = condColumn.lower()
-                        
+
                         if condColumn.find('!') != -1:
                             # Negation condition
-                            condColumn = condColumn.replace('!','')
+                            condColumn = condColumn.replace('!', '')
                             netflowValue = column_values[condColumn]
                             if args.debug > 0:
                                 print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
 
-                            if (condValue != netflowValue) or (condValue == 'all') :
+                            if (condValue != netflowValue) or (condValue == 'all'):
                                 allTrue = True
                                 if args.debug > 0:
                                     print('\t\t\tTrue (negative)')
@@ -146,7 +159,11 @@ class labeler():
                             # Normal condition, no negation
 
                             # Is the column a number?
-                            if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in  condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            # if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            column_num_keywords = ['bytes', 'packets', 'srcport', 'dstport',
+                                                   'sbytes', 'dbytes', 'spkts', 'dpkts',
+                                                   'ip_orig_bytes', 'ip_resp_bytes']
+                            if any(keyword in condColumn for keyword in column_num_keywords):
                                 # It is a colum that we can treat as a number
                                 # Find if there is <, > or = in the condition
                                 if '>' in condColumn[-1]:
@@ -154,8 +171,9 @@ class labeler():
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
+
                                     # Pay attention to directionality of condition 'condValue < flowvalue'
-                                    if (int(condValue) < int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) < int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -165,13 +183,13 @@ class labeler():
                                             print('\t\t\tFalse')
                                         allTrue = False
                                         break
-                                elif '<'  in condColumn[-1]:
+                                elif '<' in condColumn[-1]:
                                     condColumn = condColumn[:-1]
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue > flowvalue'
-                                    if (int(condValue) > int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) > int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -181,13 +199,13 @@ class labeler():
                                             print('\t\t\tFalse')
                                         allTrue = False
                                         break
-                                elif '<='  in condColumn[-2]:
+                                elif '<=' in condColumn[-2]:
                                     condColumn = condColumn[:-2]
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue >= flowvalue'
-                                    if (int(condValue) >= int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) >= int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -197,13 +215,13 @@ class labeler():
                                             print('\t\t\tFalse')
                                         allTrue = False
                                         break
-                                elif '>='  in condColumn[-2]:
+                                elif '>=' in condColumn[-2]:
                                     condColumn = condColumn[:-2]
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
                                     # Pay attention to directionality of condition 'condValue <= flowvalue'
-                                    if (int(condValue) <= int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) <= int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -217,7 +235,7 @@ class labeler():
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
-                                    if (int(condValue) == int(netflowValue)) or (condValue == 'all') :
+                                    if (int(condValue) == int(netflowValue)) or (condValue == 'all'):
                                         allTrue = True
                                         if args.debug > 0:
                                             print('\t\t\tTrue')
@@ -250,10 +268,11 @@ class labeler():
                                         print('\t\t\tFalse')
                                     allTrue = False
                                     break
+
+                            # It is not a colum that we can treat as a number
                             else:
-                                # It is not a colum that we can treat as a number
                                 netflowValue = column_values[condColumn]
-                                if (condValue == netflowValue) or (condValue == 'all') :
+                                if (condValue == netflowValue) or (condValue == 'all'):
                                     netflowValue = column_values[condColumn]
                                     if args.debug > 0:
                                         print(f'\t\tTo compare field: {condColumn}, Condition value: {condValue}, Netflow value: {netflowValue}')
@@ -273,21 +292,24 @@ class labeler():
                     if allTrue:
                         labelToReturn = (genericlabelToVerify, detailedlabelToVerify)
                         if args.debug > 0:
-                            print('\tNew label assigned: {0}'.format(genericlabelToVerify, detailedlabelToVerify))
-                        
-            if args.verbose > 0:
+                            print(f'\tNew label assigned: {genericlabelToVerify} {detailedlabelToVerify}')
+
+            if args.verbose > 1:
                 if 'Background' in labelToReturn:
                     print(f'\tFinal label assigned: {labelToReturn}')
                 else:
                     print(f'\tFinal label assigned: \x1b\x5b1;31;40m{labelToReturn}\x1b\x5b0;0;40m')
+
             return labelToReturn
 
         except Exception as inst:
-            print('Problem in getLabel() in class labeler')
+            print('[!] Error in class labeler getLabel(): unable to label the given column values')
+            print(column_values)
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
+            sys.exit(-1)
+
 
 def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
     """
@@ -326,7 +348,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
 def process_nfdump(f, headers, labelmachine):
@@ -337,21 +359,24 @@ def process_nfdump(f, headers, labelmachine):
     # Just to monitor how many lines we read
     amount_lines_processed = 0
 
-    # Parse the file into an array of dictionaries. We will use the columns names as dictionary keys
+    # Parse the file into an array of dictionaries.
+    # We will use the columns names as dictionary keys
     # Example: [ {'Date': '10/10/2013} , {'SrcIp':'1.1.1.1} , , ]
     netflowArray = []
     columnDict = {}
 
-    # Replace the TABs for spaces, if it has them..., and replace the : in the ports to spaces also, and strip the \n, and the word flow
-    temp2 = headers.replace('flow','')
-    temp = re.sub( '\s+', ' ', temp2 ).replace(':',' ').strip()
+    # Replace the TABs for spaces, if it has them...,
+    # and replace the : in the ports to spaces also,
+    # and strip the \n, and the word flow
+    temp2 = headers.replace('flow', '')
+    temp = re.sub('\s+', ' ', temp2).replace(':', ' ').strip()
     columnNames = temp.split(' ')
 
     # Only to separate src ip from dst ip
     addressType = ''
 
-    #if args.debug > 0:
-    #    print 'Columns names: {0}'.format(columnNames)
+    # if args.debug > 0:
+    #    print(f'Columns names: {columnNames}')
 
     for cN in columnNames:
         # Separate between src ip and dst ip
@@ -391,62 +416,60 @@ def process_nfdump(f, headers, labelmachine):
     netflowArray.append(columnDict)
     columnDict = {}
 
-    #if args.debug > 0:
-        #print 'netflowArray'
-        #print netflowArray
+    # if args.debug > 0:
+    #    print('netflowArray')
+    #    print(netflowArray)
 
     # Create the output file with the header
-    outputfile = open(args.netflowFile+'.labeled','w+')
-    
+    outputfile = open(args.netflowFile+'.labeled', 'w+')
+
     # Write the column names
     columnnames = "Date flow start Duration        Proto   Src IP Addr:Port        Dst IP Addr:Port        Flags   Tos     Packets Bytes   Flows  Label\n"
     outputfile.writelines(columnnames)
 
-
     # Read the second line to start processing
     line = f.readline()
     amount_lines_processed += 1
-    while (line):
+    while line:
         if args.verbose > 0:
-            print('Netflow line: {0}'.format(line), end=' ')
+            print(f'Netflow line: {line}', end=' ')
 
         # Parse the columns
         # Strip and replace ugly stuff
-        temp2 = line.replace('->','')
-        temp = re.sub( '\s+', ' ', temp2 ).strip()
+        temp2 = line.replace('->', '')
+        temp = re.sub('\s+', ' ', temp2).strip()
         columnValues = temp.split(' ')
 
         # Date
         date = columnValues[0]
         # Store the value in the dict
         dict = netflowArray[0]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = date
         netflowArray[0] = dict
 
         hour = columnValues[1]
         # Store the value in the dict
         dict = netflowArray[1]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = hour
         netflowArray[1] = dict
 
         duration = columnValues[2]
         # Store the value in the dict
         dict = netflowArray[2]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = duration
         netflowArray[2] = dict
 
         protocol = columnValues[3].upper()
         # Store the value in the dict
         dict = netflowArray[3]
-        columnName = list(dict.keys())[0] 
-        #columnName = 'Proto'
+        columnName = list(dict.keys())[0]
+        # columnName = 'Proto'
         dict[columnName] = protocol
         netflowArray[3] = dict
 
-        
         if 'TCP' in protocol or 'UDP' in protocol or 'RTP' in protocol:
             temp = columnValues[4]
             if len(temp.split(':')) <= 2:
@@ -454,14 +477,14 @@ def process_nfdump(f, headers, labelmachine):
                 srcip = temp.split(':')[0]
                 # Store the value in the dict
                 dict = netflowArray[4]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcip
                 netflowArray[4] = dict
 
                 srcport = temp.split(':')[1]
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcport
                 netflowArray[5] = dict
 
@@ -469,29 +492,30 @@ def process_nfdump(f, headers, labelmachine):
                 dstip = temp2.split(':')[0]
                 # Store the value in the dict
                 dict = netflowArray[6]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstip
                 netflowArray[6] = dict
 
                 dstport = temp2.split(':')[1]
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstport
                 netflowArray[7] = dict
             elif len(temp.split(':')) > 2:
-                # We are using ipv6! THIS DEPENDS A LOT ON THE program that created the netflow..
+                # We are using ipv6! THIS DEPENDS A LOT ON THE
+                # program that created the netflow..
                 srcip = temp[0:temp.rfind(':')]
                 # Store the value in the dict
                 dict = netflowArray[4]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcip
                 netflowArray[4] = dict
 
                 srcport = temp[temp.rfind(':')+1:]
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcport
                 netflowArray[5] = dict
 
@@ -499,18 +523,18 @@ def process_nfdump(f, headers, labelmachine):
                 dstip = temp2[0:temp2.rfind(':')]
                 # Store the value in the dict
                 dict = netflowArray[6]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstip
                 netflowArray[6] = dict
 
                 dstport = temp2[temp2.rfind(':')+1:]
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstport
                 netflowArray[7] = dict
             else:
-                print() 
+                print()
                 print('Please implement this protocol!')
                 print(line)
                 sys.exit(-1)
@@ -518,91 +542,90 @@ def process_nfdump(f, headers, labelmachine):
             srcip = temp = columnValues[4]
             # Store the value in the dict
             dict = netflowArray[4]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = srcip
             netflowArray[4] = dict
 
             srcport = '0'
             # Store the value in the dict
             dict = netflowArray[5]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = srcport
             netflowArray[5] = dict
 
             dstip = temp = columnValues[5]
             # Store the value in the dict
             dict = netflowArray[6]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = dstip
             netflowArray[6] = dict
 
             dstport = '0'
             # Store the value in the dict
             dict = netflowArray[7]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = dstport
             netflowArray[7] = dict
 
         flags = columnValues[6].upper()
         # Store the value in the dict
         dict = netflowArray[8]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = flags
         netflowArray[8] = dict
 
         tos = columnValues[7]
         # Store the value in the dict
         dict = netflowArray[9]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = tos
         netflowArray[9] = dict
 
         packets = columnValues[8]
         # Store the value in the dict
         dict = netflowArray[10]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = packets
         netflowArray[10] = dict
 
         bytes = columnValues[9]
         # Store the value in the dict
         dict = netflowArray[11]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = bytes
         netflowArray[11] = dict
 
         flows = columnValues[10]
         # Store the value in the dict
         dict = netflowArray[12]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = flows
         netflowArray[12] = dict
 
         # Empty the label in the dict
         dict = netflowArray[13]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = ""
         netflowArray[13] = dict
 
-        #if args.debug > 0:
-        #    print date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows
-        #    print netflowArray
-
+        # if args.debug > 0:
+        #    print(date,hour,duration,protocol, srcip, srcport, dstip, dstport, flags, tos, packets, bytes, flows)
+        #    print(netflowArray)
 
         # Request a label
         genericlabel, detailedlabel = labelmachine.getLabel(netflowArray)
+
         # Store the value in the dict
         dict = netflowArray[13]
-        columnName = list(dict.keys())[0] 
+        columnName = list(dict.keys())[0]
         dict[columnName] = genericlabel
         netflowArray[13] = dict
 
-        #if args.debug > 0:
-            #print netflowArray
+        # if args.debug > 0:
+        #    print(netflowArray)
 
         # Ask to store the netflow
         output_netflow_line_to_file(outputfile, netflowArray)
-
 
         line = f.readline()
         amount_lines_processed += 1
@@ -752,7 +775,7 @@ def define_columns(headerline, filetype):
         # We need a temp dict because we can not change the size of dict while analyzing it
         temp_dict = {}
         for i in column_idx:
-            if type(column_idx[i]) == bool and column_idx[i] == False:
+            if type(column_idx[i]) == bool and column_idx[i] is False:
                 continue
             temp_dict[i] = column_idx[i]
         column_idx = temp_dict
@@ -768,15 +791,16 @@ def define_columns(headerline, filetype):
 
 def define_type(data):
     """
-    Try to define very fast the type of input from :Zeek file, Suricata json, Argus binetflow CSV, Argus binetflow TSV
+    Try to define very fast the type of input from :Zeek file,
+    Suricata json, Argus binetflow CSV, Argus binetflow TSV
     Using a Heuristic detection
     Input: The first line after the headers if there were some, as 'data'
     Outputs types can be can be: zeek-json, suricata, argus-tab, argus-csv, zeek-tab
     """
     try:
         # If line json, it can be Zeek or suricata
-        # If line CSV, it can be Argus 
-        # If line TSV, it can be Argus  or zeek
+        # If line CSV, it can be Argus
+        # If line TSV, it can be Argus or zeek
 
         input_type = 'unknown'
 
@@ -828,14 +852,21 @@ def define_type(data):
         print(str(inst), 0, 1)
         sys.exit(1)
 
+
 def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
     """
-    Process a Zeek file
-    The filetype can be: 'tab', 'csv', 'json'
+    Process and label a Zeek file using the label configuration.
+    Zeek files can have three distinct field separators:
+        - 'tab': currently supported
+        - 'csv': currently supported
+        - 'json': not implemented yet
     """
     try:
         amount_lines_processed = 0
         column_values = {}
+
+        if args.verbose > 0:
+            print(f'[+] Labeling the flow file {args.netflowFile}')
 
         # Read firstlines
         line = input_file.readline()
@@ -844,19 +875,23 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         while '#' in line:
             line = input_file.readline()
 
-        while (line):
-            # Count the first line
+        # Process each flow in input file
+        while line:
+            # Count the flows processed
             amount_lines_processed += 1
 
-            if args.verbose > 0:
+            if args.verbose > 1:
                 print(f'Netflow line: {line}', end='')
 
+            # Zeek files can be in csv, tab or JSON format
+            # Labeling CSV and TAB uses the same method
             if 'csv' in filetype or 'tab' in filetype:
                 # Work with csv and tabs
                 if 'csv' in filetype:
                     separator = ','
                 elif 'tab' in filetype:
                     separator = '\t'
+
                 # Transform the line into an array
                 line_values = line.split(separator)
 
@@ -870,7 +905,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['pkts'] = ''
                 column_values['ipbytes'] = ''
 
-                # Sum bytes
+                # bytes: total bytes. Calculated as the SUM of sbytes and dbytes
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['sbytes'] == '-':
                     sbytes = 0
@@ -881,9 +916,9 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 else:
                     dbytes = int(column_values['dbytes'])
                 column_values['bytes'] = str(sbytes + dbytes)
-                #print(f'New column bytes = {column_values["bytes"]}')
+                # print(f'New column bytes = {column_values["bytes"]}')
 
-                # Sum packets
+                # pkts: total packets. Calculated as the SUM of spkts and dpkts
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['spkts'] == '-':
                     spkts = 0
@@ -894,9 +929,10 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 else:
                     dpkts = int(column_values['dpkts'])
                 column_values['pkts'] = str(spkts + dpkts)
-                #print(f'New column pkst = {column_values["pkts"]}')
+                # print(f'New column pkst = {column_values["pkts"]}')
 
-                # Sum ip_bytes
+                # ipbytes: total transferred bytes.
+                # Calculated as the SUM of orig_ip_bytes and resp_ip_bytes.
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['orig_ip_bytes'] == '-':
                     sip_bytes = 0
@@ -907,7 +943,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 else:
                     dip_bytes = int(column_values['resp_ip_bytes'])
                 column_values['ipbytes'] = str(sip_bytes + dip_bytes)
-                #print(f'New column ipbytes = {column_values["ipbytes"]}')
+                # print(f'New column ipbytes = {column_values["ipbytes"]}')
 
                 # Request a label
                 genericlabel, detailedlabel = labelmachine.getLabel(column_values)
@@ -917,6 +953,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 # Store the netflow
                 output_netflow_line_to_file(output_file, line, filetype, genericlabel=genericlabel, detailedlabel=detailedlabel)
 
+                # Read next flow line ignoring comments
                 line = input_file.readline()
                 while '#' in line:
                     line = input_file.readline()
@@ -926,15 +963,15 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 amount_lines_processed += 1
                 pass
 
-
-
+        # Returned number of labeled flows
         return amount_lines_processed
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
-        print(f'\tProblem in process_zeek() line {exception_line}', 0, 1)
+        print(f'\t[!] Error in process_zeek(): exception in line {exception_line}', 0, 1)
         print(str(type(inst)), 0, 1)
         print(str(inst), 0, 1)
         sys.exit(1)
+
 
 def process_argus(column_idx, output_file, labelmachine, filetype):
     """
@@ -954,11 +991,11 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnDict = {}
 
         # Replace the TABs for spaces, if it has them..., and replace the : in the ports to spaces also, and strip the \n, and the word flow
-        temp = re.sub( '\s+', ' ', headers ).strip()
+        temp = re.sub('\s+', ' ', headers).strip()
         columnNames = temp.split(' ')
 
-        #if args.debug > 0:
-        #    print 'Columns names: {0}'.format(columnNames)
+        # if args.debug > 0:
+        #    print(f'Columns names: {columnNames}')
 
         # So far argus does no have a column Date
         columnDict['Date'] = ""
@@ -968,7 +1005,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnDict['start'] = ""
         netflowArray.append(columnDict)
         columnDict = {}
-        
+
         columnDict['Duration'] = ""
         netflowArray.append(columnDict)
         columnDict = {}
@@ -1017,95 +1054,92 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         columnnames = "Date Time       Dur     Proto   SrcAddr Sport   Dir     DstAddr Dport   State   sTos    TotPkts TotBytes Label\n"
         output_file.writelines(columnnames)
 
-
         # Read the second line to start processing
         line = f.readline()
         amount_lines_processed += 1
-        while (line):
+        while line:
             if args.verbose > 0:
-                print('Netflow line: {0}'.format(line), end=' ')
+                print(f'Netflow line: {line}', end=' ')
 
             # Parse the columns
             # Strip and replace ugly stuff
-            temp2 = line.replace('->','')
-            temp = re.sub( '\s+', ' ', temp2 ).strip()
+            temp2 = line.replace('->', '')
+            temp = re.sub('\s+', ' ', temp2).strip()
             columnValues = temp.split(' ')
 
-            #if args.debug > 0:
-            #    print columnValues
+            # if args.debug > 0:
+            #    print(columnValues)
 
             # Date
             date = columnValues[0]
             # Store the value in the dict
             dict = netflowArray[0]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = date
             netflowArray[0] = dict
 
             hour = columnValues[1]
             # Store the value in the dict
             dict = netflowArray[1]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = hour
             netflowArray[1] = dict
 
             duration = columnValues[2]
             # Store the value in the dict
             dict = netflowArray[2]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = duration
             netflowArray[2] = dict
 
             protocol = columnValues[3].upper()
             # Store the value in the dict
             dict = netflowArray[3]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = protocol
             netflowArray[3] = dict
 
             srcIP = columnValues[4]
             # Store the value in the dict
             dict = netflowArray[4]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = srcIP
             netflowArray[4] = dict
 
             if 'ARP' in protocol:
-                srcPort = '0'   
+                srcPort = '0'
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcPort
                 netflowArray[5] = dict
             else:
                 srcPort = columnValues[5]
                 # Store the value in the dict
                 dict = netflowArray[5]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = srcPort
                 netflowArray[5] = dict
 
-
-            dstIP = columnValues[6] 
+            dstIP = columnValues[6]
             # Store the value in the dict
             dict = netflowArray[6]
-            columnName = list(dict.keys())[0] 
+            columnName = list(dict.keys())[0]
             dict[columnName] = dstIP
             netflowArray[6] = dict
 
-
             if 'ARP' in protocol:
-                dstPort = '0'   
+                dstPort = '0'
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstPort
                 netflowArray[7] = dict
 
                 Flags = columnValues[8]
                 # Store the value in the dict
                 dict = netflowArray[8]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Flags
                 netflowArray[8] = dict
 
@@ -1113,38 +1147,36 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 dstPort = columnValues[7]
                 # Store the value in the dict
                 dict = netflowArray[7]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = dstPort
                 netflowArray[7] = dict
 
                 Flags = columnValues[8]
                 # Store the value in the dict
                 dict = netflowArray[8]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Flags
                 netflowArray[8] = dict
-
-
 
             if 'LLC' in protocol:
                 Tos = '0'
                 # Store the value in the dict
                 dict = netflowArray[9]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Tos
                 netflowArray[9] = dict
 
                 Packets = columnValues[9]
                 # Store the value in the dict
                 dict = netflowArray[10]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Packets
                 netflowArray[10] = dict
 
                 Bytes = columnValues[10]
                 # Store the value in the dict
                 dict = netflowArray[11]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Bytes
                 netflowArray[11] = dict
 
@@ -1152,28 +1184,28 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
             elif 'ARP' in protocol:
                 Tos = '0'
                 # Store the value in the dict
                 dict = netflowArray[9]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Tos
                 netflowArray[9] = dict
 
                 Packets = columnValues[8]
                 # Store the value in the dict
                 dict = netflowArray[10]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Packets
                 netflowArray[10] = dict
 
                 Bytes = columnValues[9]
                 # Store the value in the dict
                 dict = netflowArray[11]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Bytes
                 netflowArray[11] = dict
 
@@ -1181,28 +1213,28 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
             else:
                 Tos = columnValues[9]
                 # Store the value in the dict
                 dict = netflowArray[9]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Tos
                 netflowArray[9] = dict
 
                 Packets = columnValues[10]
                 # Store the value in the dict
                 dict = netflowArray[10]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Packets
                 netflowArray[10] = dict
 
                 Bytes = columnValues[11]
                 # Store the value in the dict
                 dict = netflowArray[11]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = Bytes
                 netflowArray[11] = dict
 
@@ -1210,12 +1242,12 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
                 genericlabellabel, detailedlabel = labelmachine.getLabel(netflowArray)
                 # Store the value in the dict
                 dict = netflowArray[12]
-                columnName = list(dict.keys())[0] 
+                columnName = list(dict.keys())[0]
                 dict[columnName] = genericlabellabel
                 netflowArray[12] = dict
 
-            #if args.debug > 0:
-            #    print netflowArray
+            # if args.debug > 0:
+            #    print(netflowArray)
 
             # Ask to store the netflow
             output_netflow_line_to_file(output_file, netflowArray)
@@ -1229,43 +1261,56 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
         print(str(inst), 0, 1)
         sys.exit(1)
 
+
 def process_netflow(labelmachine):
     """
-    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
+    This function takes the flowFile and parse it.
+    Then it asks for a label and finally it calls
+    a function to store the netflow in a file.
     """
     try:
         if args.verbose > 0:
-            print('[+] Processing the flow file {0}'.format(args.netflowFile))
+            print(f'[+] Processing the flow file {args.netflowFile}')
 
         # Open flows file
         try:
-            input_file = open(args.netflowFile,'r')
+            input_file = open(args.netflowFile, 'r')
         except Exception as inst:
-            print('Some problem opening the input netflow file. In process_netflow()')
+            print('[!] Error in process_netflow: cannot open the input netflow file.')
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
-
-        # ---- Define the type of file
-        headerline = input_file.readline()
-
-        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date' 
-        if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
-            print('The file has not headers. Please add them.')
             sys.exit(-1)
 
+        # Define the type of file
+        headerline = input_file.readline()
+
+        # If there are no headers, do not process the file:
+        #  - Zeek headers start with '#'
+        #  - Argus headers start with 'StartTime'
+        #  - nfdump headers start with 'Date'
+        # if '#' not in headerline[0] and 'Date' not in headerline and 'StartTime' not in headerline and 'ts' not in headerline and 'timestamp' not in headerline:
+        header_keywords = ['#', 'Date', 'StarTime', 'ts', 'timestamp']
+        if not any(headerline.startswith(keyword) for keyword in header_keywords):
+            print('[!] Error in process_netflow: the input netflow file has not headers.')
+            sys.exit(-1)
+
+        # Attempt to automatically identify the type of file
+        # from the header of the netflow file
         filetype = define_type(headerline)
         if args.verbose > 0:
-            print(f'[+] Type of flow file to label: {filetype}')
+            print(f'[+] The input netflow file to label was identified as: {filetype}')
 
-        # Create the output file for all cases
-        output_file = open(args.netflowFile+'.labeled','w+')
+        # Create the output file to store the labeled netflows
+        output_file = open(args.netflowFile+'.labeled', 'w+')
+        if args.verbose > 0:
+            print(f"[+] The netflow file labeled can be found at: {args.netflowFile+'.labeled'}")
 
         # Store the headers in the output file
         output_netflow_line_to_file(output_file, headerline)
 
-        # ---- Define the columns 
+        # Define the columns based on the type of the input netflow file
+        # and call the labeler function based on the detected type
         if filetype == 'zeek-json':
             column_idx = define_columns(headerline, filetype='json')
             amount_lines_processed = 0
@@ -1288,56 +1333,63 @@ def process_netflow(labelmachine):
                 if '#fields' in headerline:
                     fields_headerline = headerline
                 headerline = input_file.readline()
+
                 # Store the rest of the zeek headers in the output file
                 output_netflow_line_to_file(output_file, headerline, filetype='tab')
+
             # Get the columns indexes
             column_idx = define_columns(fields_headerline, filetype='tab')
+
             # Process the whole file
             amount_lines_processed = process_zeek(column_idx, input_file, output_file, labelmachine, filetype='tab')
-            # Close the netflow file
-            input_file.close()
+
         elif filetype == 'nfdump-tab':
             column_idx = define_columns(headerline, filetype='tab')
             amount_lines_processed = process_nfdump(column_idx, input_file, output_file, headerline, labelmachine)
-        
-        # Close the outputfile
+        else:
+            print(f"[!] Error in process_netflow: filetype not supported {filetype}")
+
+        # Close the input file
+        input_file.close()
+
+        # Close the output file
         output_file.close()
 
-        print('Amount of lines read: {0}'.format(amount_lines_processed))
+        print(f"[+] Labeling completed. Total number of flows read: {amount_lines_processed}")
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
-        print(f'Problem in process_netflow() line {exception_line}', 0, 1)
+        print(f'[!] Error in process_netflow() line {exception_line}', 0, 1)
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
-def loadConditions(labelmachine):
+def load_conditions(labelmachine):
     """
-    Load the labelling conditions from a conf file
+    Load the labeling conditions from a configuration file.
+    Input: labelmachine is a labeler object
+    Output: modified labelmachine object. No return instruction.
     """
     conditionsList = []
     try:
         conf = open(args.configFile)
-        #try:
-        #    if args.verbose > 0:
-        ##        print('Opening the configuration file \'{0}\''.format(args.configFile))
-        #    conf = open(args.configFile)
-        #except:
-        #    print('The file \'{0}\' couldn\'t be opened.'.format(args.configFile))
-        #    exit(1)
 
         if args.debug > 0:
-            print('Loading the conditions from the configuration file ')                    
+            print('Loading the conditions from the configuration file ')
 
-        # Read the conf file
+        # Read the labeling configuration file
         line = conf.readline().strip()
         conditions = {}
 
-        while (line):
-            # Ignore comments
+        # Process each line of the labeling configuration file
+        # There are three possible options here:
+        #     - We read a comment: #
+        #     - We read a label: does not start with symbols
+        #     - We read a label condition: starts with '-'
+        while line:
+            # Ignore comments marked with '#'
             if line.strip().find('#') == 0:
                 line = conf.readline().strip()
                 continue
@@ -1345,18 +1397,22 @@ def loadConditions(labelmachine):
             # Read a label
             if line.strip()[0] != '-':
                 label = line.split(':')[0]
-                #if args.debug > 0:
-                #    print 'Label: {}'.format(label)
-                conditions[label]=[]
+                # if args.debug > 0:
+                #    print(f'Label: {label}')
+                conditions[label] = []
 
                 # Now read all the conditions for this label
                 line = conf.readline().strip()
-                while (line):
+                while line:
+                    # If line starts with '-' is a condition
                     if line.strip()[0] == '-':
-                        # Condition
+                        # Parse the condition
                         tempAndConditions = line.strip().split('-')[1]
                         if args.debug > 1:
-                            print('Condition: {}'.format(tempAndConditions))
+                            print(f'Condition: {tempAndConditions}')
+
+                        # Check if the condition is composed,
+                        # e.g.: srcIP=xxx.xxx.xxx.xxx & dstPort=xx
                         andConditions = []
                         for andCond in tempAndConditions.split('&'):
                             tempdict = {}
@@ -1367,8 +1423,9 @@ def loadConditions(labelmachine):
 
                         line = conf.readline().strip()
                     else:
+                        # Finished reading all conditions for a given label
                         break
-            labelmachine.addCondition(conditions) 
+            labelmachine.addCondition(conditions)
             conditions = {}
 
     except KeyboardInterrupt:
@@ -1376,32 +1433,37 @@ def loadConditions(labelmachine):
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
     except Exception as inst:
-        print('Problem in main() function at loadConditions ')
+        print('Problem in main() function at load_conditions ')
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
         sys.exit(-1)
         return False
 
+
 if __name__ == '__main__':
-    print('NetFlow labeler. Version {}'.format(version))
-    print('https://stratosphereips.org')
+    print(f'NetFlow Labeler v{version}')
+    print('Stratosphere Research Laboratory (https://stratosphereips.org)')
+    print()
 
     # Parse the parameters
-    parser = argparse.ArgumentParser(description="Tool to label netflow files", add_help=False)
-    parser.add_argument('-c','--configFile', metavar='<configFile>', action='store', required=True, help='path to labeling rules configuration.')
-    parser.add_argument('-v', '--verbose',metavar='<verbose>',action='store', required=False, type=int, default=0, help='amount of verbosity. This shows more info about the results.')
-    parser.add_argument('-d', '--debug', action='store', required=False, type=int, default=0, help='amount of debugging. This shows inner information about the program.')
-    parser.add_argument('-f', '--netflowFile',metavar='<netflowFile>', action='store', required=True, help='file to label.')
-    parser.add_argument("-h", "--help", action="help", help="command line help")
+    parser = argparse.ArgumentParser(description="A configurable rule-based labeling tool for network flow files")
+    parser.add_argument('-c', '--configFile', metavar='<configFile>', action='store',
+                        required=True, help='path to labeling configuration.')
+    parser.add_argument('-f', '--netflowFile', metavar='<netflowFile>', action='store',
+                        required=True, help='path to the file to label.')
+    parser.add_argument('-v', '--verbose', action='store',
+                        required=False, type=int, default=0, help='set verbosity level.')
+    parser.add_argument('-d', '--debug', action='store', required=False, type=int, default=0,
+                        help='set debugging level.')
     args = parser.parse_args()
 
     try:
         # Create an instance of the labeler
         labelmachine = labeler()
 
-        # Load conditions
-        loadConditions(labelmachine)
+        # Load labeling conditions from config file
+        load_conditions(labelmachine)
 
         # Direct process of netflow flows
         process_netflow(labelmachine)
@@ -1409,5 +1471,9 @@ if __name__ == '__main__':
         # CTRL-C pretty handling.
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
-
-
+    except Exception as inst:
+        # Notify of any other exception
+        print('Exception in __main__')
+        print(type(inst))     # the exception instance
+        print(inst.args)      # arguments stored in .args
+        print(inst)           # __str__ allows args to printed directly
