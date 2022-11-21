@@ -839,8 +839,11 @@ def define_type(data):
 
 def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
     """
-    Process a Zeek file
-    The filetype can be: 'tab', 'csv', 'json'
+    Process and label a Zeek file using the label configuration.
+    Zeek files can have three distinct field separators:
+        - 'tab': currently supported
+        - 'csv': currently supported
+        - 'json': not implemented yet
     """
     try:
         amount_lines_processed = 0
@@ -858,18 +861,21 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
 
         # Process each flow in input file
         while line:
-            # Count the first line
+            # Count the flows processed
             amount_lines_processed += 1
 
             if args.verbose > 1:
                 print(f'Netflow line: {line}', end='')
 
+            # Zeek files can be in csv, tab or JSON format
+            # Labeling CSV and TAB uses the same method
             if 'csv' in filetype or 'tab' in filetype:
                 # Work with csv and tabs
                 if 'csv' in filetype:
                     separator = ','
                 elif 'tab' in filetype:
                     separator = '\t'
+
                 # Transform the line into an array
                 line_values = line.split(separator)
 
@@ -883,7 +889,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['pkts'] = ''
                 column_values['ipbytes'] = ''
 
-                # Sum bytes
+                # bytes: total bytes. Calculated as the SUM of sbytes and dbytes
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['sbytes'] == '-':
                     sbytes = 0
@@ -896,7 +902,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['bytes'] = str(sbytes + dbytes)
                 # print(f'New column bytes = {column_values["bytes"]}')
 
-                # Sum packets
+                # pkts: total packets. Calculated as the SUM of spkts and dpkts
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['spkts'] == '-':
                     spkts = 0
@@ -909,7 +915,8 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 column_values['pkts'] = str(spkts + dpkts)
                 # print(f'New column pkst = {column_values["pkts"]}')
 
-                # Sum ip_bytes
+                # ipbytes: total transferred bytes.
+                # Calculated as the SUM of orig_ip_bytes and resp_ip_bytes.
                 # We do it like this because sometimes the column can be - or 0
                 if column_values['orig_ip_bytes'] == '-':
                     sip_bytes = 0
@@ -930,6 +937,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 # Store the netflow
                 output_netflow_line_to_file(output_file, line, filetype, genericlabel=genericlabel, detailedlabel=detailedlabel)
 
+                # Read next flow line ignoring comments
                 line = input_file.readline()
                 while '#' in line:
                     line = input_file.readline()
@@ -939,10 +947,11 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
                 amount_lines_processed += 1
                 pass
 
+        # Returned number of labeled flows
         return amount_lines_processed
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
-        print(f'\tProblem in process_zeek() line {exception_line}', 0, 1)
+        print(f'\t[!] Error in process_zeek(): exception in line {exception_line}', 0, 1)
         print(str(type(inst)), 0, 1)
         print(str(inst), 0, 1)
         sys.exit(1)
