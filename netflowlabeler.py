@@ -280,7 +280,7 @@ class labeler():
                         if args.debug > 0:
                             print(f'\tNew label assigned: {genericlabelToVerify} {detailedlabelToVerify}')
 
-            if args.verbose > 0:
+            if args.verbose > 1:
                 if 'Background' in labelToReturn:
                     print(f'\tFinal label assigned: {labelToReturn}')
                 else:
@@ -846,6 +846,9 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         amount_lines_processed = 0
         column_values = {}
 
+        if args.verbose > 0:
+            print(f'[+] Labeling the flow file {args.netflowFile}')
+
         # Read firstlines
         line = input_file.readline()
 
@@ -853,11 +856,12 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         while '#' in line:
             line = input_file.readline()
 
+        # Process each flow in input file
         while line:
             # Count the first line
             amount_lines_processed += 1
 
-            if args.verbose > 0:
+            if args.verbose > 1:
                 print(f'Netflow line: {line}', end='')
 
             if 'csv' in filetype or 'tab' in filetype:
