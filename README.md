@@ -4,13 +4,14 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/stratosphereips/netflowlabeler?color=green)
 
 
-Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
+Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz and Veronica Valeros valerver@fel.cvut.cz.
 
 Netflowlabeler is a Python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the labels and conditions to a configuration file and use this tool to assign them.
 
-You can add a generic label and a detailed label.
+The labels are assigned by following our own label ontology. The ontology is designed as configuration file that you can modify. You can add a generic labels and a detailed labels.
 
 For now it works only in for Zeek files separated by TABS. In the future it will include Zeek with JSON and CSV, Argus with CSV and TABS, Nfdump with CSV and Suricata with JSON
+
 
 __netflowlabeler.py__ can label conn.log files based on a configuration file. __zeek-files-labeler.py__ can label the rest of the Zeek log files, using the labels in the conn.log file.
 
@@ -19,7 +20,7 @@ __netflowlabeler.py__ can label conn.log files based on a configuration file. __
 
     netflowlabeler.py -c <configFile> [-v <verbose>] [-d DEBUG] -f <netflowFile> [-h]
 
-# Usage for using the labels in a conn.log file to label the rest of the Zeek file
+# Usage for using the labels in a conn.log file to label the rest of the Zeek files
 
     zeek-files-labeler.py -l conn.log.labeled -f folder-with-zeek-log-files
 
