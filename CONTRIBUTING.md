@@ -8,7 +8,7 @@ As a general rule, base your contribution on the `develop` branch.
 
 ## Persistent Git Branches
 
-The following git branches permanent in the Slips repository:
+The following git branches permanent in the repository:
 
 - `main`: contains the stable version of the repository.
 - `develop`: all new features should be based on this branch.
