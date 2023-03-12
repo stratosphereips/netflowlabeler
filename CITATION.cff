@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: >-
-  Netflow Labeler: A configurable rule-based labeling tool for network flow files
+  NetflowLabeler: A configurable rule-based labeling tool for network flow files
 message: 'If you use this software, please cite it as below.'
 type: software
 authors:
