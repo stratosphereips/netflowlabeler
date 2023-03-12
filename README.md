@@ -1,4 +1,4 @@
-# Netflowlabeler
+# NetflowLabeler
 [![Docker Image CI](https://github.com/stratosphereips/netflowlabeler/actions/workflows/docker-image.yml/badge.svg)](https://github.com/stratosphereips/netflowlabeler/actions/workflows/docker-image.yml)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/stratosphereips/netflowlabeler/main)
 ![Docker Pulls](https://img.shields.io/docker/pulls/stratosphereips/netflowlabeler?color=green)
@@ -6,7 +6,7 @@
 
 Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz and Veronica Valeros valerver@fel.cvut.cz.
 
-Netflowlabeler is a Python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the labels and conditions to a configuration file and use this tool to assign them.
+NetflowLabeler is a Python tool to add labels to netflow text files. If you have a netflow text file and you want to add labels to it, you can add the labels and conditions to a configuration file and use this tool to assign them.
 
 The labels are assigned by following our own label ontology. The ontology is designed as configuration file that you can modify. You can add a generic labels and a detailed labels.
 
