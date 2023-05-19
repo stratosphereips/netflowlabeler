@@ -24,7 +24,6 @@
 # Description
 # A tool to add labels in netflow files based on a configuration. Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
 
-import getopt
 import sys
 import json
 import argparse
