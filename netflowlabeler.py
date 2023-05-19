@@ -18,8 +18,8 @@
 #
 # Authors:
 # Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
-# Veronica Valeros, vero.valeros@gmail.com
-# Stratosphere Laboratory, Czech Technical University in Prague
+# Veronica Valeros, valerver@fel.cvut.cz, vero.valeros@gmail.com
+# Stratosphere Laboratory, AIC, FEL, Czech Technical University in Prague
 
 # Description
 # A tool to add labels in netflow files based on a configuration.
@@ -30,7 +30,6 @@ netflowlabeler.py is a tool to add labels in netflow files based on a
 configuration file.
 """
 import sys
-import re
 import json
 import argparse
 import ipaddress
@@ -159,7 +158,10 @@ class labeler():
                             # Normal condition, no negation
 
                             # Is the column a number?
-                            # if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or ('ip_resp_bytes' in condColumn):
+                            # if ('bytes' in condColumn) or ('packets' in condColumn) or ('srcport' in condColumn) or
+                            # ('dstport' in condColumn) or ('sbytes' in condColumn) or ('dbyets' in condColumn) or
+                            # ('spkts' in condColumn) or ('dpkts' in condColumn) or ('ip_orig_bytes' in condColumn) or 
+                            # ('ip_resp_bytes' in condColumn):
                             column_num_keywords = ['bytes', 'packets', 'srcport', 'dstport',
                                                    'sbytes', 'dbytes', 'spkts', 'dpkts',
                                                    'ip_orig_bytes', 'ip_resp_bytes']
@@ -356,6 +358,8 @@ def process_nfdump(f, headers, labelmachine):
     DEPRECATED!! NEEDS UPDATE COMPLETELY
     Process and label an nfdump file
     """
+    pass
+    """
     # Just to monitor how many lines we read
     amount_lines_processed = 0
 
@@ -538,7 +542,10 @@ def process_nfdump(f, headers, labelmachine):
                 print('Please implement this protocol!')
                 print(line)
                 sys.exit(-1)
-        elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS' or protocol == 'IGMP' or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol or 'IPV6' in protocol:
+        elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or /
+        protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or /
+        protocol == 'UNAS' or protocol == 'IGMP' or 'IPX' in protocol or 'RARP' in protocol /
+        or 'LLC' in protocol or 'IPV6' in protocol:
             srcip = temp = columnValues[4]
             # Store the value in the dict
             dict = netflowArray[4]
@@ -632,6 +639,7 @@ def process_nfdump(f, headers, labelmachine):
 
     # Close the outputfile
     outputfile.close()
+    """
 
 
 def define_columns(headerline, filetype):
@@ -979,6 +987,8 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
     Process an Argus file
     """
     try:
+        pass
+        """
         print(column_idx)
         return 0
 
@@ -1254,6 +1264,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
 
             line = f.readline()
             amount_lines_processed += 1
+            """
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
         print(f'\tProblem in process_argus() line {exception_line}', 0, 1)
@@ -1372,7 +1383,6 @@ def load_conditions(labelmachine):
     Input: labelmachine is a labeler object
     Output: modified labelmachine object. No return instruction.
     """
-    conditionsList = []
     try:
         conf = open(args.configFile)
 
