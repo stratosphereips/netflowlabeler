@@ -25,7 +25,7 @@ To label the rest of the Zeek files using an already labeled conn.log file (conn
 zeek-files-labeler.py -l conn.log.labeled -f folder-with-zeek-log-files
 ```
 
-# Features
+## Features
 
 - You can have AND and OR conditions
 - You can have generic labels and detailed labels
@@ -35,32 +35,34 @@ zeek-files-labeler.py -l conn.log.labeled -f folder-with-zeek-log-files
 - You can use CIDR notation for IP ranges
 - You can label all the Zeek log files, by using the labels you put in the conn.log file
 
-# Example Configuration File of Labels
+## Example Configuration File of Labels
 
-The conf file syntax is like this:
+An example of the confguration file syntax is shown below:
 
-    Background:
-        - srcIP=all
-    # Here the generic label is Background and the detailed label is ARP
-    Background, ARP: 
-        - Proto=ARP
-    Malicious, From_Malware:
-        - srcIP=10.0.0.34
-    Malicious-More, From_Other_Malware:
-        - srcIP!=10.0.0.34 & dstPort=23
-    Malicious-HEre, From_This_Malware:
-        - srcIP=10.0.0.34 & State=SF
-    Malicious, From_Local_Link_IPv6:
-        - srcIP=fe80::1dfe:6c38:93c9:c808
-    Test-State:
-        - srcIP=10.0.0.34 & State=S0
-    Test-largebytes:
-       - Bytes>=100
-    Test-smallbytes:
-       - Bytes<=100
-    Benign, FromWindows:
-        - Proto=UDP & srcIP=147.32.84.165 & dstPort=53     # (AND conditions go in one line)
-        - Proto=TCP & dstIP=1.1.1.1 & dstPort=53           # (all new lines are OR conditions)
+```yaml
+Background:
+    - srcIP=all
+# Here the generic label is Background and the detailed label is ARP
+Background, ARP: 
+    - Proto=ARP
+Malicious, From_Malware:
+    - srcIP=10.0.0.34
+Malicious-More, From_Other_Malware:
+    - srcIP!=10.0.0.34 & dstPort=23
+Malicious-HEre, From_This_Malware:
+    - srcIP=10.0.0.34 & State=SF
+Malicious, From_Local_Link_IPv6:
+    - srcIP=fe80::1dfe:6c38:93c9:c808
+Test-State:
+    - srcIP=10.0.0.34 & State=S0
+Test-largebytes:
+   - Bytes>=100
+Test-smallbytes:
+   - Bytes<=100
+Benign, FromWindows:
+    - Proto=UDP & srcIP=147.32.84.165 & dstPort=53     # (AND conditions go in one line)
+    - Proto=TCP & dstIP=1.1.1.1 & dstPort=53           # (all new lines are OR conditions)
+```
 
 0. The first part of the label is the generic label (Benign), after the comma is the detailed description (FromWindows). We encourage not to use : or spaces or , or TABs in the detailed description
 1. If there is no |, then the detailed label is empty. 
@@ -89,7 +91,7 @@ These are the possible fields that you can use in a configuration file to create
 
 The fields 'Bytes', 'Packets' and 'IPBytes' are computed in Zeek from the fields for the src and dst values. For example, Bytes=srcbytes + dstbytes
 
-# Docker Image
+## Docker Image
 
 Netflow labeler has a public docker image with the latest version. 
 
@@ -109,7 +111,7 @@ To mount your logs path to the container and automatically run the netflow label
 docker run -v /full/path/to/logs/:/netflowlabeler/data --rm -it stratosphereips/netflowlabeler:latest python3 netflowlabeler.py -c data/labels.config -f data/conn.log
 ```
 
-# Netflow Labeler High Level Diagram
+## Netflow Labeler High Level Diagram
 
 ```mermaid
 flowchart LR;
