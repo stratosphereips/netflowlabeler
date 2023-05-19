@@ -542,7 +542,10 @@ def process_nfdump(f, headers, labelmachine):
                 print('Please implement this protocol!')
                 print(line)
                 sys.exit(-1)
-        elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or protocol == 'UNAS' or protocol == 'IGMP' or 'IPX' in protocol or 'RARP' in protocol or 'LLC' in protocol or 'IPV6' in protocol:
+        elif protocol == 'IPNIP' or protocol == 'RSVP' or protocol == 'GRE' or protocol == 'UDT' or /
+        protocol == 'ARP' or protocol == 'ICMP' or protocol == 'PIM' or protocol == 'ESP' or /
+        protocol == 'UNAS' or protocol == 'IGMP' or 'IPX' in protocol or 'RARP' in protocol /
+        or 'LLC' in protocol or 'IPV6' in protocol:
             srcip = temp = columnValues[4]
             # Store the value in the dict
             dict = netflowArray[4]
