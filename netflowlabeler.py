@@ -18,8 +18,8 @@
 #
 # Authors:
 # Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
-# Veronica Valeros, vero.valeros@gmail.com
-# Stratosphere Laboratory, Czech Technical University in Prague
+# Veronica Valeros, valerver@fel.cvut.cz, vero.valeros@gmail.com
+# Stratosphere Laboratory, AIC, FEL, Czech Technical University in Prague
 
 # Description
 # A tool to add labels in netflow files based on a configuration.
