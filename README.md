@@ -8,7 +8,8 @@ _Authors: Sebastian Garcia and Veronica Valeros, Stratosphere Laboratory, CTU in
 
 NetflowLabeler is a Python tool to add labels to text-based network flow files. To label a netflow file, simply add the labels and conditions to a configuration file, then use this tool to assign them. The assignment of labels adheres to our own label ontology, which is structured as a customizable configuration file. Within the configuration file, you have the ability to incorporate both generic and detailed labels. Currently, the tool supports Zeek files that are delimited by TABS. However, future updates will expand its capabilities to include Zeek files in JSON and CSV formats, Argus files in CSV and TABS formats, Nfdump files in CSV format, and Suricata files in JSON format.
 
-__netflowlabeler.py__ can label conn.log files based on a configuration file. __zeek-files-labeler.py__ can label the rest of the Zeek log files, using the labels in the conn.log file.
+- __netflowlabeler.py__ can label conn.log files based on a configuration file.
+- __zeek-files-labeler.py__ can label the rest of the Zeek log files, using the labels in the conn.log file.
 
 
 # Usage for labeling a conn.log file
