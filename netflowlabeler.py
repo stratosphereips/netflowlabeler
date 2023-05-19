@@ -1377,7 +1377,6 @@ def load_conditions(labelmachine):
     Input: labelmachine is a labeler object
     Output: modified labelmachine object. No return instruction.
     """
-    conditionsList = []
     try:
         conf = open(args.configFile)
 
