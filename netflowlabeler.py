@@ -356,6 +356,8 @@ def process_nfdump(f, headers, labelmachine):
     DEPRECATED!! NEEDS UPDATE COMPLETELY
     Process and label an nfdump file
     """
+    pass
+    """
     # Just to monitor how many lines we read
     amount_lines_processed = 0
 
@@ -632,6 +634,7 @@ def process_nfdump(f, headers, labelmachine):
 
     # Close the outputfile
     outputfile.close()
+    """
 
 
 def define_columns(headerline, filetype):
@@ -979,6 +982,8 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
     Process an Argus file
     """
     try:
+        pass
+        """
         print(column_idx)
         return 0
 
@@ -1254,6 +1259,7 @@ def process_argus(column_idx, output_file, labelmachine, filetype):
 
             line = f.readline()
             amount_lines_processed += 1
+            """
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
         print(f'\tProblem in process_argus() line {exception_line}', 0, 1)
