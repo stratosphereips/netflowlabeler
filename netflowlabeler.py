@@ -30,7 +30,6 @@ netflowlabeler.py is a tool to add labels in netflow files based on a
 configuration file.
 """
 import sys
-import re
 import json
 import argparse
 import ipaddress
