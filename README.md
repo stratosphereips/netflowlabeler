@@ -12,13 +12,18 @@ NetflowLabeler is a Python tool to add labels to text-based network flow files. 
 - __zeek-files-labeler.py__ can label the rest of the Zeek log files, using the labels in the conn.log file.
 
 
-# Usage for labeling a conn.log file
+## Usage
 
-    netflowlabeler.py -c <configFile> [-v <verbose>] [-d DEBUG] -f <netflowFile> [-h]
+To label a conn.log file from a configuration file:
 
-# Usage for using the labels in a conn.log file to label the rest of the Zeek files
+```python
+netflowlabeler.py -c <configFile> [-v <verbose>] [-d DEBUG] -f <netflowFile> [-h]
+```
+To label the rest of the Zeek files using an already labeled conn.log file (conn.log.labeled):
 
-    zeek-files-labeler.py -l conn.log.labeled -f folder-with-zeek-log-files
+```python
+zeek-files-labeler.py -l conn.log.labeled -f folder-with-zeek-log-files
+```
 
 # Features
 
