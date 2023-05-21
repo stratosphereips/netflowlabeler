@@ -16,13 +16,18 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors:
-# Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, sgarcia@exa.unicen.edu.ar, eldraco@gmail.com
-# Veronica Valeros, vero.valeros@gmail.com
-# Stratosphere Laboratory, Czech Technical University in Prague
+"""
+Zeek files labeler
 
-# Description
-# A tool to add labels in netflow files based on a configuration. Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
+A tool that effortlessly adds labels to netflow files. With support for Zeek, Argus, and NFdump
+formats in both CSV and TSV.
+
+Authors:
+   Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
+   Veronica Valeros, vero.valeros@gmail.com
+   Stratosphere Laboratory, Czech Technical University in Prague
+"""
+
 
 import sys
 import json
@@ -37,19 +42,21 @@ VERSION = "0.1"
 
 def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
     """
-    Get data and store it on a new file
-    If genericlabel is empty, it is a headler line to process
+    Store the input line with its labels into the output file. If 'genericlabel' is empty, it means
+    the input line is a header line, and requires special processing.
+        - Input: outpuffile, originalline, filetype, genericlabel and detailedlabel
+        - Output: no output
     """
     try:
+        # Configure the field separator
         if 'csv' in filetype:
             separator = ','
         elif 'tab' in filetype:
             separator = '\t'
 
-        if type(originalline) == str and genericlabel == '':
-            # It is a headerline
-
-            # Should we add the 'label' string? Zeek has many headerlines
+        # Validate if input line is a header line. Write all header lines back without change,
+        # except those Zeek headers that define fields and types.
+        if isinstance(originalline, str) and genericlabel == '':
             if '#fields' in originalline:
                 outputline = originalline.strip() + separator + 'label' + separator + 'detailedlabel' + '\n'
                 outputfile.writelines(outputline)
@@ -58,14 +65,13 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
                 outputfile.writelines(outputline)
             else:
                 outputfile.writelines(originalline)
-            # We are not putting the 'label' string in the header!
-        elif type(originalline) == str and genericlabel != '':
-            # These are values to store
+        # Validate if input line is a netflow line and store along with the new fields
+        elif isinstance(originalline,str) and genericlabel != '':
             outputline = originalline.strip() + separator + genericlabel + separator + detailedlabel + '\n'
             outputfile.writelines(outputline)
             if args.debug > 1:
                 print(f' [+] Wrote line: {outputline}')
-            # keep it open!
+            # do not close the file
 
     except Exception as inst:
         print('Problem in output_labeled_netflow_file()')
@@ -76,7 +82,11 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
 
 
 def define_columns(headerline, filetype):
-    """ Define the columns for Argus and Zeek-tab from the line received """
+    """
+    Define the columns for Argus and Zeek-tab from the line received
+        - Input: headerline, filetype
+        - Output: column_idx
+    """
     # These are the indexes for later fast processing
     column_idx = {}
     column_idx['starttime'] = False
@@ -119,6 +129,7 @@ def define_columns(headerline, filetype):
                 separator = ','
             elif 'tab' in filetype:
                 separator = '\t'
+
             nline = headerline.strip().split(separator)
             try:
                 # Remove the extra column of zeek if it is there
@@ -126,11 +137,14 @@ def define_columns(headerline, filetype):
             except ValueError:
                 # ignore if #fields is not there
                 pass
+
             if args.debug > 1:
                 print(f'Headers line: {nline}')
+
             for field in nline:
                 if args.debug > 2:
                     print(f'Field: {field.lower()}, index: {nline.index(field)}')
+
                 if 'time' in field.lower() or field.lower() == 'ts':
                     column_idx['starttime'] = nline.index(field)
                 elif field.lower() == 'uid':
@@ -235,10 +249,11 @@ def define_columns(headerline, filetype):
         # If not we will believe that we have data on them
         # We need a temp dict because we can not change the size of dict while analyzing it
         temp_dict = {}
-        for i in column_idx:
-            if type(column_idx[i]) == bool and column_idx[i] == False:
+        for key, value in column_idx.items():
+            if isinstance(value,bool) and value is False:
                 continue
-            temp_dict[i] = column_idx[i]
+            temp_dict[key] = value
+
         column_idx = temp_dict
 
         return column_idx
@@ -252,36 +267,33 @@ def define_columns(headerline, filetype):
 
 def define_type(data):
     """
-    Try to define very fast the type of input from :Zeek file, Suricata json, Argus binetflow CSV, Argus binetflow TSV
-    Using a Heuristic detection
-    Input: The first line after the headers if there were some, as 'data'
-    Outputs types can be can be: zeek-json, suricata, argus-tab, argus-csv, zeek-tab
+    Using heuristic detection, quickly determine the input type from the following options:
+    Zeek file, Suricata JSON, Argus binetflow CSV, or Argus binetflow TSV.
+        - Input: The first line after the headers if there were some, as 'data'
+        - Outputs types can be can be: zeek-json, suricata, argus-tab, argus-csv, zeek-tab
+    If input is JSON, it can be Zeek or Suricata
+    If input is CSV, it can be Argus
+    If input is TSV, it can be Argus or zeek
     """
+    input_type = 'unknown'
     try:
-        # If line json, it can be Zeek or suricata
-        # If line CSV, it can be Argus
-        # If line TSV, it can be Argus or zeek
-
-        input_type = 'unknown'
-
-        # Is it json?
+        # Validate if input is JSON
         try:
             json_line = json.loads(data)
-            # json
+
+            # Determine if logs are Zeek or Suricata
             try:
-                # Zeek?
+                # Validate if input are Zeek JSON logs
                 _ = json_line['ts']
                 input_type = 'zeek-json'
-                return input_type
             except KeyError:
-                # Suricata?
+                # Validate if input are Suricata JSON logs?
                 _ = json_line['timestamp']
                 input_type = 'suricata-json'
-                return input_type
+        # Validate if input is CSV or TSV
         except json.JSONDecodeError:
-            # No json
-            if type(data) == str:
-                # string
+            # Validate if input is text based
+            if isinstance(data,str):
                 nr_commas = len(data.split(','))
                 nr_tabs = len(data.split('	'))
                 if nr_commas > nr_tabs:
@@ -302,9 +314,12 @@ def define_type(data):
                         input_type = 'zeek-tab'
                     elif 'Date' in data:
                         input_type = 'nfdump-tab'
+            else:
+                print("Exception in define_type(): unknown logs type.")
+                sys.exit(1)
 
-            return input_type
-
+        # Returned guessed input log type
+        return input_type
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
         print(f'\tProblem in define_type() line {exception_line}', 0, 1)
@@ -329,7 +344,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         while '#' in line:
             line = input_file.readline()
 
-        while (line):
+        while line:
             # Count the first line
             amount_lines_processed += 1
 
@@ -409,7 +424,6 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
             elif 'json' in filetype:
                 # Count the first line
                 amount_lines_processed += 1
-                pass
 
         return amount_lines_processed
     except Exception as inst:
@@ -422,7 +436,9 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
 
 def cache_labeled_file():
     """
-    Read the labeled file and store the uid and labels in a dictionary
+    Read the labeled file and store the uid and labels in a dictionary.
+        - Input: global variable 'args.labeledfile'
+        - Output: labels_dict
     """
     try:
         if args.verbose > 0:
@@ -430,7 +446,7 @@ def cache_labeled_file():
 
         # Open labeled flows file and get the columns
         try:
-            input_labeled_file = open(args.labeledfile,'r')
+            input_labeled_file = open(args.labeledfile,'r', encoding='utf-8')
         except Exception as inst:
             print('Some problem opening the input labeled netflow file. In cache_labeled_file()')
             print(type(inst))     # the exception instance
@@ -455,7 +471,6 @@ def cache_labeled_file():
         # Define the columns
         if filetype == 'zeek-json':
             input_labeled_file_column_idx = define_columns(headerline, filetype='json')
-            amount_lines_processed = 0
         elif filetype == 'zeek-tab':
             # Get all the other headers first
             while '#types' not in headerline:
@@ -473,7 +488,7 @@ def cache_labeled_file():
 
         inputline = input_labeled_file.readline()
         lines_with_labels_read = 0
-        while inputline and not '#' in inputline:
+        while inputline and '#' not in inputline:
             # Transform the line into an array
             line_values = inputline.split(input_labeled_file_separator)
             if args.debug > 8:
@@ -520,7 +535,7 @@ def process_zeekfolder():
         labels_dict = cache_labeled_file()
 
         if args.verbose > 0:
-            print('\n[+] Processing the zeek folder {0} for files to label'.format(args.zeekfolder))
+            print(f"\n[+] Processing the zeek folder {args.zeekfolder} for files to label")
 
 
         # ----- Second, open each file in the folder, and label them.
@@ -547,7 +562,7 @@ def process_zeekfolder():
                 print(f'[+] Processing zeek file: {zeekfile_name}')
 
             try:
-                zeekfile = open(join(args.zeekfolder, zeekfile_name),'r')
+                zeekfile = open(join(args.zeekfolder, zeekfile_name),'r', encoding='utf-8')
             except Exception as inst:
                 print(f'Some problem opening a zeek file {zeekfile_name}. In process_zeekfolder()')
                 print(type(inst))     # the exception instance
@@ -569,7 +584,7 @@ def process_zeekfolder():
                 print(f'[+] Type of flow file to label: {filetype}')
 
             # Create the output file for all cases
-            output_file = open(join(args.zeekfolder, zeekfile_name+'.labeled'),'w')
+            output_file = open(join(args.zeekfolder, zeekfile_name+'.labeled'),'w', encoding='utf-8')
             if args.debug > 1:
                 print(f"[+] Output file created: {join(args.zeekfolder, zeekfile_name+'.labeled')}")
 
@@ -579,7 +594,6 @@ def process_zeekfolder():
             # ---- Define the columns of this file
             if filetype == 'zeek-json':
                 column_idx = define_columns(headerline, filetype='json')
-                amount_lines_processed = 0
             elif filetype == 'zeek-tab':
                 # ---- Get all the headers lines and store them in the output file
                 while '#types' not in headerline:
@@ -598,7 +612,7 @@ def process_zeekfolder():
 
             if zeekfile_name == 'x509.log':
                 line_to_label = zeekfile.readline().strip()
-                while line_to_label and not '#' in line_to_label[0]:
+                while line_to_label and '#' not in line_to_label[0]:
                     # Transform the line into an array
                     line_values = line_to_label.split(zeek_file_file_separator)
                     if args.debug > 5:
@@ -613,7 +627,7 @@ def process_zeekfolder():
                         #if args.verbose > 5:
                             #print(f"[+] Greping {fingerprint} in file {join(args.zeekfolder, zeekfile_name)}")
                         command = 'grep ' + fingerprint + ' ' + join(args.zeekfolder, 'ssl.log')
-                        result = subprocess.run(command.split(), stdout=subprocess.PIPE)
+                        result = subprocess.run(command.split(), stdout=subprocess.PIPE, check=True)
                         result = result.stdout.decode('utf-8')
                         #if args.verbose > 5:
                             #print(f"\t[+] Result {result}")
@@ -644,9 +658,9 @@ def process_zeekfolder():
                         # Because we create them sometimes from larger zeek files that were filtered
                         pass
                     line_to_label = zeekfile.readline().strip()
-            if zeekfile_name == 'ocsp.log' or zeekfile_name == 'pe.log':
+            if zeekfile_name in ('ocsp.log', 'pe.log'):
                 line_to_label = zeekfile.readline().strip()
-                while line_to_label and not '#' in line_to_label[0]:
+                while line_to_label and '#' not in line_to_label[0]:
                     # Transform the line into an array
                     line_values = line_to_label.split(zeek_file_file_separator)
                     if args.debug > 5:
@@ -661,7 +675,7 @@ def process_zeekfolder():
                         #if args.verbose > 5:
                             #print(f"[+] Greping {file_id} in file {join(args.zeekfolder, zeekfile_name)}")
                         command = 'grep ' + file_id + ' ' + join(args.zeekfolder, 'files.log')
-                        result = subprocess.run(command.split(), stdout=subprocess.PIPE)
+                        result = subprocess.run(command.split(), stdout=subprocess.PIPE, check=True)
                         result = result.stdout.decode('utf-8')
                         #if args.verbose > 5:
                             #print(f"\t[+] Result {result}")
@@ -699,7 +713,7 @@ def process_zeekfolder():
                 # Read each line of the labeled file and get the zeek uid
                 line_to_label = zeekfile.readline().strip()
 
-                while line_to_label and not '#' in line_to_label[0]:
+                while line_to_label and '#' not in line_to_label[0]:
                     # Transform the line into an array
                     line_values = line_to_label.split(zeek_file_file_separator)
                     if args.debug > 5:
@@ -753,8 +767,6 @@ def process_zeekfolder():
         # Close the outputfile
         output_file.close()
 
-        #print('Amount of lines read: {0}'.format(amount_lines_processed))
-
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
         print(f'Problem in process_zeekfolder() line {exception_line}', 0, 1)
@@ -765,8 +777,8 @@ def process_zeekfolder():
 
 
 if __name__ == '__main__':
-    print('Zeek Files labeler from labeled conn.log.labeled file. Version {}'.format(VERSION))
-    print('https://stratosphereips.org')
+    print(f"Zeek Files labeler from labeled conn.log.labeled file. Version {VERSION}")
+    print("https://stratosphereips.org")
 
     # Parse the parameters
     parser = argparse.ArgumentParser(description="Given a conn.log.labeled file, copy those labels to the rest of the Zeek log files", add_help=False)
