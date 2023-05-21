@@ -589,7 +589,6 @@ def process_zeekfolder():
             # ---- Define the columns of this file
             if filetype == 'zeek-json':
                 column_idx = define_columns(headerline, filetype='json')
-                amount_lines_processed = 0
             elif filetype == 'zeek-tab':
                 # ---- Get all the headers lines and store them in the output file
                 while '#types' not in headerline:
