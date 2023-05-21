@@ -110,6 +110,7 @@ def define_columns(headerline, filetype):
     column_idx['detailedlabel'] = False
     column_idx['fingerprint'] = False
     column_idx['id'] = False
+    column_idx['uids'] = False
 
     try:
         if 'csv' in filetype or 'tab' in filetype:
@@ -186,6 +187,8 @@ def define_columns(headerline, filetype):
                     column_idx['label'] = nline.index(field)
                 elif 'fingerprint' in field.lower():
                     column_idx['fingerprint'] = nline.index(field)
+                elif 'uids' in field.lower():
+                    column_idx['uids'] = nline.index(field)
                 elif 'id' in field.lower():
                     column_idx['id'] = nline.index(field)
         elif 'json' in filetype:
@@ -704,10 +707,12 @@ def process_zeekfolder():
 
                     # Read column values from the zeek line
                     try:
-                        if zeekfile_name != 'files.log':
-                            uid = line_values[column_idx['uid']]
-                        elif zeekfile_name == 'files.log':
+                        if zeekfile_name == 'files.log':
                             uid = line_values[column_idx['conn_uids']]
+                        elif zeekfile_name == 'dhcp.log':
+                            uid = line_values[column_idx['uids']]
+                        else:
+                            uid = line_values[column_idx['uid']]
 
                         lines_labeled += 1
 
