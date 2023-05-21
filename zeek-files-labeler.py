@@ -707,10 +707,12 @@ def process_zeekfolder():
 
                     # Read column values from the zeek line
                     try:
-                        if zeekfile_name != 'files.log':
-                            uid = line_values[column_idx['uid']]
-                        elif zeekfile_name == 'files.log':
+                        if zeekfile_name == 'files.log':
                             uid = line_values[column_idx['conn_uids']]
+                        elif zeekfile_name == 'dhcp.log':
+                            uid = line_values[column_idx['uids']]
+                        else:
+                            uid = line_values[column_idx['uid']]
 
                         lines_labeled += 1
 
