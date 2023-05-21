@@ -37,8 +37,8 @@ VERSION = "0.1"
 
 def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
     """
-    Get data and store it on a new file
-    If genericlabel is empty, it is a headler line to process
+    Store the input line with its labels into the output file. If 'genericlabel' is empty, it means
+    the input line is a header line, and requires special processing.
     """
     try:
         if 'csv' in filetype:
