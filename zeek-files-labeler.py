@@ -339,7 +339,7 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
         while '#' in line:
             line = input_file.readline()
 
-        while (line):
+        while line:
             # Count the first line
             amount_lines_processed += 1
 
