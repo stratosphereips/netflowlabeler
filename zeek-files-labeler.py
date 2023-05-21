@@ -641,6 +641,54 @@ def process_zeekfolder():
                         # Because we create them sometimes from larger zeek files that were filtered
                         pass
                     line_to_label = zeekfile.readline().strip()
+            if zeekfile_name == 'ocsp.log' or zeekfile_name == 'pe.log':
+                line_to_label = zeekfile.readline().strip()
+                while line_to_label and not '#' in line_to_label[0]:
+                    # Transform the line into an array
+                    line_values = line_to_label.split(zeek_file_file_separator)
+                    if args.debug > 5:
+                        print(f"[+] line values: {line_values}")
+
+                    # Read column values from the line to label
+                    try:
+                        file_id = line_values[column_idx['id']]
+                        if args.debug > 5:
+                            print(f"[+] got the file ID: {file_id}")
+
+                        #if args.verbose > 5:
+                            #print(f"[+] Greping {file_id} in file {join(args.zeekfolder, zeekfile_name)}")
+                        command = 'grep ' + file_id + ' ' + join(args.zeekfolder, 'files.log')
+                        result = subprocess.run(command.split(), stdout=subprocess.PIPE)
+                        result = result.stdout.decode('utf-8')
+                        #if args.verbose > 5:
+                            #print(f"\t[+] Result {result}")
+
+                        # Using this file_id find the uid of the ssl line
+                        uid = result.split('\t')[4]
+
+                        # Using this uid, find the label for the conn.log line
+                        try:
+                            # Get the labels
+                            generic_label_to_assign = labels_dict[uid][0]
+                            detailed_label_to_assign = labels_dict[uid][1]
+                        except KeyError:
+                            # There is no label for this uid!
+                            generic_label_to_assign = '(empty)'
+                            detailed_label_to_assign = '(empty)'
+                            uid_without_label += 1
+                            if args.debug > 1:
+                                print(f"There is no label for this uid: {uid}")
+
+                        if args.debug > 3:
+                            print(f"[+] To label UID: {uid}. Label: {generic_label_to_assign}. Detailed label: {detailed_label_to_assign}")
+                        # Store the rest of the zeek line in the output file
+                        output_netflow_line_to_file(output_file, line_to_label, filetype='tab', genericlabel=generic_label_to_assign, detailedlabel=detailed_label_to_assign)
+                        lines_labeled += 1
+                    except (IndexError, KeyError):
+                        # Some zeek log files can have the headers only and no data.
+                        # Because we create them sometimes from larger zeek files that were filtered
+                        pass
+                    line_to_label = zeekfile.readline().strip()
 
             else:
                 # ---- Read the lines from the rest of log files to label
