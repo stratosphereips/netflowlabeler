@@ -16,14 +16,18 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors:
-#  Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
-#  Veronica Valeros, vero.valeros@gmail.com
-#  Stratosphere Laboratory, Czech Technical University in Prague
+"""
+Zeek files labeler
 
-# Description
-#  A tool that effortlessly adds labels to netflow files. With support for Zeek, Argus, and NFdump
-#  formats in both CSV and TSV.
+A tool that effortlessly adds labels to netflow files. With support for Zeek, Argus, and NFdump
+formats in both CSV and TSV.
+
+Authors:
+   Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
+   Veronica Valeros, vero.valeros@gmail.com
+   Stratosphere Laboratory, Czech Technical University in Prague
+"""
+
 
 import sys
 import json
