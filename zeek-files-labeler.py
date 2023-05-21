@@ -77,7 +77,11 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
 
 
 def define_columns(headerline, filetype):
-    """ Define the columns for Argus and Zeek-tab from the line received """
+    """
+    Define the columns for Argus and Zeek-tab from the line received
+        - Input: headerline, filetype
+        - Output: column_idx
+    """
     # These are the indexes for later fast processing
     column_idx = {}
     column_idx['starttime'] = False
