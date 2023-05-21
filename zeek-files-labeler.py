@@ -52,7 +52,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
 
         # Validate if input line is a header line. Write all header lines back without change,
         # except those Zeek headers that define fields and types.
-        if type(originalline) == str and genericlabel == '':
+        if isinstance(originalline, str) and genericlabel == '':
             if '#fields' in originalline:
                 outputline = originalline.strip() + separator + 'label' + separator + 'detailedlabel' + '\n'
                 outputfile.writelines(outputline)
@@ -62,7 +62,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
             else:
                 outputfile.writelines(originalline)
         # Validate if input line is a netflow line and store along with the new fields
-        elif type(originalline) == str and genericlabel != '':
+        elif isinstance(originalline,str) and genericlabel != '':
             outputline = originalline.strip() + separator + genericlabel + separator + detailedlabel + '\n'
             outputfile.writelines(outputline)
             if args.debug > 1:
@@ -246,7 +246,7 @@ def define_columns(headerline, filetype):
         # We need a temp dict because we can not change the size of dict while analyzing it
         temp_dict = {}
         for i in column_idx:
-            if type(column_idx[i]) == bool and column_idx[i] == False:
+            if isinstance(column_idx[i],bool) and column_idx[i] == False:
                 continue
             temp_dict[i] = column_idx[i]
         column_idx = temp_dict
@@ -288,7 +288,7 @@ def define_type(data):
         # Validate if input is CSV or TSV
         except json.JSONDecodeError:
             # Validate if input is text based
-            if type(data) == str:
+            if isinstance(data,str):
                 nr_commas = len(data.split(','))
                 nr_tabs = len(data.split('	'))
                 if nr_commas > nr_tabs:
