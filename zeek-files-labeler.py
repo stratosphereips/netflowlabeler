@@ -253,8 +253,8 @@ def define_type(data):
     """
     try:
         # If line json, it can be Zeek or suricata
-        # If line CSV, it can be Argus 
-        # If line TSV, it can be Argus  or zeek
+        # If line CSV, it can be Argus
+        # If line TSV, it can be Argus or zeek
 
         input_type = 'unknown'
 
@@ -435,7 +435,7 @@ def cache_labeled_file():
         # Get the first header line to find the type
         headerline = input_labeled_file.readline()
 
-        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date' 
+        # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date'
         if '#' not in headerline[0]:
             print('The labeled file has not headers. Please add them.')
             sys.exit(-1)
@@ -446,7 +446,7 @@ def cache_labeled_file():
         if args.verbose > 3:
             print(f'[+] Type of labeled file to use: {filetype}')
 
-        # Define the columns 
+        # Define the columns
         if filetype == 'zeek-json':
             input_labeled_file_column_idx = define_columns(headerline, filetype='json')
             amount_lines_processed = 0
@@ -517,7 +517,7 @@ def process_zeekfolder():
             print('\n[+] Processing the zeek folder {0} for files to label'.format(args.zeekfolder))
 
 
-        # ----- Second, open each file in the folder, and label them. 
+        # ----- Second, open each file in the folder, and label them.
         # Get the list of files in this folder
         zeekfiles = [f for f in listdir(args.zeekfolder) if isfile(join(args.zeekfolder, f))]
 
@@ -549,7 +549,7 @@ def process_zeekfolder():
             # Get the first header line to find the type
             headerline = zeekfile.readline()
 
-            # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date' 
+            # If there are no headers, get out. Most start with '#' but Argus starts with 'StartTime' and nfdump with 'Date'
             if '#' not in headerline[0]:
                 print('The file has not headers. Please add them.')
                 sys.exit(-1)
@@ -585,7 +585,7 @@ def process_zeekfolder():
                 zeek_file_file_separator = '\t'
 
             # ---- For the majority of zeek log files, using the UID from conn.log to find the related flow is ok
-            # ---- But it is not for x509.log and files.log. 
+            # ---- But it is not for x509.log and files.log.
 
             if zeekfile_name == 'x509.log':
                 line_to_label = zeekfile.readline().strip()
@@ -638,7 +638,7 @@ def process_zeekfolder():
 
             else:
                 # ---- Read the lines from the rest of log files to label
-                
+
                 # Read each line of the labeled file and get the zeek uid
                 line_to_label = zeekfile.readline().strip()
 
@@ -656,7 +656,7 @@ def process_zeekfolder():
                             uid = line_values[column_idx['conn_uids']]
 
                         lines_labeled += 1
-                        
+
                         try:
                             # Get the labels
                             generic_label_to_assign = labels_dict[uid][0]
