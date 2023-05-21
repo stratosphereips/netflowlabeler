@@ -17,12 +17,13 @@
 #
 #
 # Authors:
-# Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, sgarcia@exa.unicen.edu.ar, eldraco@gmail.com
-# Veronica Valeros, vero.valeros@gmail.com
-# Stratosphere Laboratory, Czech Technical University in Prague
+#  Sebastian Garcia, sebastian.garcia@agents.fel.cvut.cz, eldraco@gmail.com
+#  Veronica Valeros, vero.valeros@gmail.com
+#  Stratosphere Laboratory, Czech Technical University in Prague
 
 # Description
-# A tool to add labels in netflow files based on a configuration. Flow file include Zeek, Argus, and NFdump. Both in CSV and TSV
+#  A tool that effortlessly adds labels to netflow files. With support for Zeek, Argus, and NFdump
+#  formats in both CSV and TSV.
 
 import sys
 import json
