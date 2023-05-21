@@ -252,10 +252,13 @@ def define_columns(headerline, filetype):
 
 def define_type(data):
     """
-    Try to define very fast the type of input from :Zeek file, Suricata json, Argus binetflow CSV, Argus binetflow TSV
-    Using a Heuristic detection
-    Input: The first line after the headers if there were some, as 'data'
-    Outputs types can be can be: zeek-json, suricata, argus-tab, argus-csv, zeek-tab
+    Using heuristic detection, quickly determine the input type from the following options:
+    Zeek file, Suricata JSON, Argus binetflow CSV, or Argus binetflow TSV.
+        - Input: The first line after the headers if there were some, as 'data'
+        - Outputs types can be can be: zeek-json, suricata, argus-tab, argus-csv, zeek-tab
+    If input is JSON, it can be Zeek or Suricata
+    If input is CSV, it can be Argus
+    If input is TSV, it can be Argus or zeek
     """
     try:
         # If line json, it can be Zeek or suricata
