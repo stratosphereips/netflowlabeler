@@ -260,31 +260,27 @@ def define_type(data):
     If input is CSV, it can be Argus
     If input is TSV, it can be Argus or zeek
     """
+    input_type = 'unknown'
     try:
-        # If line json, it can be Zeek or suricata
-        # If line CSV, it can be Argus
-        # If line TSV, it can be Argus or zeek
-
-        input_type = 'unknown'
-
-        # Is it json?
+        # Validate if input is JSON
         try:
             json_line = json.loads(data)
-            # json
+
+            # Determine if logs are Zeek or Suricata
             try:
-                # Zeek?
+                # Validate if input are Zeek JSON logs
                 _ = json_line['ts']
                 input_type = 'zeek-json'
                 return input_type
             except KeyError:
-                # Suricata?
+                # Validate if input are Suricata JSON logs?
                 _ = json_line['timestamp']
                 input_type = 'suricata-json'
                 return input_type
+        # Validate if input is CSV or TSV
         except json.JSONDecodeError:
-            # No json
+            # Validate if input is text based
             if type(data) == str:
-                # string
                 nr_commas = len(data.split(','))
                 nr_tabs = len(data.split('	'))
                 if nr_commas > nr_tabs:
@@ -307,6 +303,7 @@ def define_type(data):
                         input_type = 'nfdump-tab'
 
             return input_type
+        # Returned guessed input log type
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
