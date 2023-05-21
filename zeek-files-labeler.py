@@ -502,8 +502,10 @@ def cache_labeled_file():
 
 def process_zeekfolder():
     """
-    This function takes the flowFile and parse it. Then it ask for a label and finally it calls a function to store the netflow in a file
-    Method: 
+    This function takes the labeled conn.log file and parses it.
+    Then it asks for a label and finally it calls a function to store the netflow in a file.
+
+    Method:
     1. Read the labeled file once and store the uid and labels in a dictionary
     2. Read each of the files in the zeek folder, read their uid, and assign the label given to that uid in the labeled file
     """
@@ -724,5 +726,3 @@ if __name__ == '__main__':
         # CTRL-C pretty handling.
         print("Keyboard Interruption!. Exiting.")
         sys.exit(1)
-
-
