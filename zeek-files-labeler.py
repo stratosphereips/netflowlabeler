@@ -488,7 +488,7 @@ def cache_labeled_file():
 
         inputline = input_labeled_file.readline()
         lines_with_labels_read = 0
-        while inputline and not '#' in inputline:
+        while inputline and '#' not in inputline:
             # Transform the line into an array
             line_values = inputline.split(input_labeled_file_separator)
             if args.debug > 8:
@@ -612,7 +612,7 @@ def process_zeekfolder():
 
             if zeekfile_name == 'x509.log':
                 line_to_label = zeekfile.readline().strip()
-                while line_to_label and not '#' in line_to_label[0]:
+                while line_to_label and '#' not in line_to_label[0]:
                     # Transform the line into an array
                     line_values = line_to_label.split(zeek_file_file_separator)
                     if args.debug > 5:
@@ -660,7 +660,7 @@ def process_zeekfolder():
                     line_to_label = zeekfile.readline().strip()
             if zeekfile_name in ('ocsp.log', 'pe.log'):
                 line_to_label = zeekfile.readline().strip()
-                while line_to_label and not '#' in line_to_label[0]:
+                while line_to_label and '#' not in line_to_label[0]:
                     # Transform the line into an array
                     line_values = line_to_label.split(zeek_file_file_separator)
                     if args.debug > 5:
@@ -713,7 +713,7 @@ def process_zeekfolder():
                 # Read each line of the labeled file and get the zeek uid
                 line_to_label = zeekfile.readline().strip()
 
-                while line_to_label and not '#' in line_to_label[0]:
+                while line_to_label and '#' not in line_to_label[0]:
                     # Transform the line into an array
                     line_values = line_to_label.split(zeek_file_file_separator)
                     if args.debug > 5:
