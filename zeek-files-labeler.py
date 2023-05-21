@@ -442,7 +442,7 @@ def cache_labeled_file():
 
         # Open labeled flows file and get the columns
         try:
-            input_labeled_file = open(args.labeledfile,'r')
+            input_labeled_file = open(args.labeledfile,'r', encoding='utf-8')
         except Exception as inst:
             print('Some problem opening the input labeled netflow file. In cache_labeled_file()')
             print(type(inst))     # the exception instance
@@ -559,7 +559,7 @@ def process_zeekfolder():
                 print(f'[+] Processing zeek file: {zeekfile_name}')
 
             try:
-                zeekfile = open(join(args.zeekfolder, zeekfile_name),'r')
+                zeekfile = open(join(args.zeekfolder, zeekfile_name),'r', encoding='utf-8')
             except Exception as inst:
                 print(f'Some problem opening a zeek file {zeekfile_name}. In process_zeekfolder()')
                 print(type(inst))     # the exception instance
@@ -581,7 +581,7 @@ def process_zeekfolder():
                 print(f'[+] Type of flow file to label: {filetype}')
 
             # Create the output file for all cases
-            output_file = open(join(args.zeekfolder, zeekfile_name+'.labeled'),'w')
+            output_file = open(join(args.zeekfolder, zeekfile_name+'.labeled'),'w', encoding='utf-8')
             if args.debug > 1:
                 print(f"[+] Output file created: {join(args.zeekfolder, zeekfile_name+'.labeled')}")
 
