@@ -532,7 +532,7 @@ def process_zeekfolder():
         labels_dict = cache_labeled_file()
 
         if args.verbose > 0:
-            print('\n[+] Processing the zeek folder {0} for files to label'.format(args.zeekfolder))
+            print(f"\n[+] Processing the zeek folder {args.zeekfolder} for files to label")
 
 
         # ----- Second, open each file in the folder, and label them.
@@ -775,8 +775,8 @@ def process_zeekfolder():
 
 
 if __name__ == '__main__':
-    print('Zeek Files labeler from labeled conn.log.labeled file. Version {}'.format(VERSION))
-    print('https://stratosphereips.org')
+    print(f"Zeek Files labeler from labeled conn.log.labeled file. Version {VERSION}")
+    print("https://stratosphereips.org")
 
     # Parse the parameters
     parser = argparse.ArgumentParser(description="Given a conn.log.labeled file, copy those labels to the rest of the Zeek log files", add_help=False)
