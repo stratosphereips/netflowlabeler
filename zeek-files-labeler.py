@@ -245,10 +245,11 @@ def define_columns(headerline, filetype):
         # If not we will believe that we have data on them
         # We need a temp dict because we can not change the size of dict while analyzing it
         temp_dict = {}
-        for i in column_idx:
-            if isinstance(column_idx[i],bool) and column_idx[i] == False:
+        for key, value in column_idx.items():
+            if isinstance(value,bool) and value is False:
                 continue
-            temp_dict[i] = column_idx[i]
+            temp_dict[key] = value
+
         column_idx = temp_dict
 
         return column_idx
