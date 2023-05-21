@@ -624,7 +624,7 @@ def process_zeekfolder():
                         #if args.verbose > 5:
                             #print(f"[+] Greping {fingerprint} in file {join(args.zeekfolder, zeekfile_name)}")
                         command = 'grep ' + fingerprint + ' ' + join(args.zeekfolder, 'ssl.log')
-                        result = subprocess.run(command.split(), stdout=subprocess.PIPE)
+                        result = subprocess.run(command.split(), stdout=subprocess.PIPE, check=True)
                         result = result.stdout.decode('utf-8')
                         #if args.verbose > 5:
                             #print(f"\t[+] Result {result}")
@@ -672,7 +672,7 @@ def process_zeekfolder():
                         #if args.verbose > 5:
                             #print(f"[+] Greping {file_id} in file {join(args.zeekfolder, zeekfile_name)}")
                         command = 'grep ' + file_id + ' ' + join(args.zeekfolder, 'files.log')
-                        result = subprocess.run(command.split(), stdout=subprocess.PIPE)
+                        result = subprocess.run(command.split(), stdout=subprocess.PIPE, check=True)
                         result = result.stdout.decode('utf-8')
                         #if args.verbose > 5:
                             #print(f"\t[+] Result {result}")
