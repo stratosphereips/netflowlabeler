@@ -467,7 +467,6 @@ def cache_labeled_file():
         # Define the columns
         if filetype == 'zeek-json':
             input_labeled_file_column_idx = define_columns(headerline, filetype='json')
-            amount_lines_processed = 0
         elif filetype == 'zeek-tab':
             # Get all the other headers first
             while '#types' not in headerline:
