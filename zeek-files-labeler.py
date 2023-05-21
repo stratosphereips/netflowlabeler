@@ -422,7 +422,9 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
 
 def cache_labeled_file():
     """
-    Read the labeled file and store the uid and labels in a dictionary
+    Read the labeled file and store the uid and labels in a dictionary.
+        - Input: global variable 'args.labeledfile'
+        - Output: labels_dict
     """
     try:
         if args.verbose > 0:
@@ -752,8 +754,6 @@ def process_zeekfolder():
         zeekfile.close()
         # Close the outputfile
         output_file.close()
-
-        #print('Amount of lines read: {0}'.format(amount_lines_processed))
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
