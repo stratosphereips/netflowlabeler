@@ -299,6 +299,8 @@ def define_type(data):
                         input_type = 'zeek-tab'
                     elif 'Date' in data:
                         input_type = 'nfdump-tab'
+            else:
+                raise Exception("Unknown input logs type")
 
         # Returned guessed input log type
         return input_type
