@@ -271,12 +271,10 @@ def define_type(data):
                 # Validate if input are Zeek JSON logs
                 _ = json_line['ts']
                 input_type = 'zeek-json'
-                return input_type
             except KeyError:
                 # Validate if input are Suricata JSON logs?
                 _ = json_line['timestamp']
                 input_type = 'suricata-json'
-                return input_type
         # Validate if input is CSV or TSV
         except json.JSONDecodeError:
             # Validate if input is text based
@@ -302,8 +300,8 @@ def define_type(data):
                     elif 'Date' in data:
                         input_type = 'nfdump-tab'
 
-            return input_type
         # Returned guessed input log type
+        return input_type
 
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
