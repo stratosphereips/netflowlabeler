@@ -39,6 +39,8 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
     """
     Store the input line with its labels into the output file. If 'genericlabel' is empty, it means
     the input line is a header line, and requires special processing.
+        - Input: outpuffile, originalline, filetype, genericlabel and detailedlabel
+        - Output: no output
     """
     try:
         # Configure the field separator
