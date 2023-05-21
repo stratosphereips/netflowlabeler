@@ -41,15 +41,15 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
     the input line is a header line, and requires special processing.
     """
     try:
+        # Configure the field separator
         if 'csv' in filetype:
             separator = ','
         elif 'tab' in filetype:
             separator = '\t'
 
+        # Validate if input line is a header line. Write all header lines back without change,
+        # except those Zeek headers that define fields and types.
         if type(originalline) == str and genericlabel == '':
-            # It is a headerline
-
-            # Should we add the 'label' string? Zeek has many headerlines
             if '#fields' in originalline:
                 outputline = originalline.strip() + separator + 'label' + separator + 'detailedlabel' + '\n'
                 outputfile.writelines(outputline)
@@ -58,14 +58,13 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
                 outputfile.writelines(outputline)
             else:
                 outputfile.writelines(originalline)
-            # We are not putting the 'label' string in the header!
+        # Validate if input line is a netflow line and store along with the new fields
         elif type(originalline) == str and genericlabel != '':
-            # These are values to store
             outputline = originalline.strip() + separator + genericlabel + separator + detailedlabel + '\n'
             outputfile.writelines(outputline)
             if args.debug > 1:
                 print(f' [+] Wrote line: {outputline}')
-            # keep it open!
+            # do not close the file
 
     except Exception as inst:
         print('Problem in output_labeled_netflow_file()')
