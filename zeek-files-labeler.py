@@ -72,7 +72,7 @@ def output_netflow_line_to_file(outputfile, originalline, filetype='', genericla
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
 def define_columns(headerline, filetype):
@@ -430,7 +430,7 @@ def cache_labeled_file():
             print(type(inst))     # the exception instance
             print(inst.args)      # arguments stored in .args
             print(inst)           # __str__ allows args to printed directly
-            exit(-1)
+            sys.exit(-1)
 
         # Get the first header line to find the type
         headerline = input_labeled_file.readline()
@@ -544,7 +544,7 @@ def process_zeekfolder():
                 print(type(inst))     # the exception instance
                 print(inst.args)      # arguments stored in .args
                 print(inst)           # __str__ allows args to printed directly
-                exit(-1)
+                sys.exit(-1)
 
             # Get the first header line to find the type
             headerline = zeekfile.readline()
@@ -702,7 +702,7 @@ def process_zeekfolder():
         print(type(inst))     # the exception instance
         print(inst.args)      # arguments stored in .args
         print(inst)           # __str__ allows args to printed directly
-        exit(-1)
+        sys.exit(-1)
 
 
 if __name__ == '__main__':
