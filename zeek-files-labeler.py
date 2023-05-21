@@ -526,8 +526,11 @@ def process_zeekfolder():
 
         for zeekfile_name in zeekfiles:
 
-            # Ignore labeled files, summary file and conn.log file
-            if '.labeled' in zeekfile_name or 'services' in zeekfile_name or 'summary' in zeekfile_name or 'conn.log' in zeekfile_name:
+            # Ignore the following files
+            ignore_keywords = ['.labeled', 'services', 'summary', 'conn.log', 'capture_loss.log',
+            'loaded_scripts.log', 'packet_filter.log', 'stats.log', 'reporter.log']
+
+            if any(keyword in zeekfile_name for keyword in ignore_keywords):
                 continue
 
             # Ignore empty files
