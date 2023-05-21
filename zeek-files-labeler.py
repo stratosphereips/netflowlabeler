@@ -32,7 +32,7 @@ from os import listdir
 from os.path import isfile, join
 import subprocess
 
-version = "0.1"
+VERSION = "0.1"
 
 
 def output_netflow_line_to_file(outputfile, originalline, filetype='', genericlabel='', detailedlabel=''):
@@ -706,7 +706,7 @@ def process_zeekfolder():
 
 
 if __name__ == '__main__':
-    print('Zeek Files labeler from labeled conn.log.labeled file. Version {}'.format(version))
+    print('Zeek Files labeler from labeled conn.log.labeled file. Version {}'.format(VERSION))
     print('https://stratosphereips.org')
 
     # Parse the parameters
