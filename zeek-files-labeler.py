@@ -419,7 +419,6 @@ def process_zeek(column_idx, input_file, output_file, labelmachine, filetype):
             elif 'json' in filetype:
                 # Count the first line
                 amount_lines_processed += 1
-                pass
 
         return amount_lines_processed
     except Exception as inst:
