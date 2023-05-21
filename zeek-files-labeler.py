@@ -124,6 +124,7 @@ def define_columns(headerline, filetype):
                 separator = ','
             elif 'tab' in filetype:
                 separator = '\t'
+
             nline = headerline.strip().split(separator)
             try:
                 # Remove the extra column of zeek if it is there
@@ -131,11 +132,14 @@ def define_columns(headerline, filetype):
             except ValueError:
                 # ignore if #fields is not there
                 pass
+
             if args.debug > 1:
                 print(f'Headers line: {nline}')
+
             for field in nline:
                 if args.debug > 2:
                     print(f'Field: {field.lower()}, index: {nline.index(field)}')
+
                 if 'time' in field.lower() or field.lower() == 'ts':
                     column_idx['starttime'] = nline.index(field)
                 elif field.lower() == 'uid':
