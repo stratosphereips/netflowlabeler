@@ -653,7 +653,7 @@ def process_zeekfolder():
                         # Because we create them sometimes from larger zeek files that were filtered
                         pass
                     line_to_label = zeekfile.readline().strip()
-            if zeekfile_name == 'ocsp.log' or zeekfile_name == 'pe.log':
+            if zeekfile_name in ('ocsp.log', 'pe.log'):
                 line_to_label = zeekfile.readline().strip()
                 while line_to_label and not '#' in line_to_label[0]:
                     # Transform the line into an array
