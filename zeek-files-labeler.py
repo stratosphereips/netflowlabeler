@@ -310,11 +310,11 @@ def define_type(data):
                     elif 'Date' in data:
                         input_type = 'nfdump-tab'
             else:
-                raise Exception("Unknown input logs type")
+                print("Exception in define_type(): unknown logs type.")
+                sys.exit(1)
 
         # Returned guessed input log type
         return input_type
-
     except Exception as inst:
         exception_line = sys.exc_info()[2].tb_lineno
         print(f'\tProblem in define_type() line {exception_line}', 0, 1)
